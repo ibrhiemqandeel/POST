@@ -39,8 +39,7 @@ COPY . /var/www
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # ضبط الصلاحيات للمجلدات الحساسة (Storage و Cache) وهي خطوة إجبارية لـ Laravel
-RUN chown -r www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # نسخ إعدادات Nginx المخصصة لـ Laravel داخل الحاوية
 COPY ./nginx.conf /etc/nginx/sites-available/default
 
