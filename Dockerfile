@@ -38,8 +38,12 @@ COPY . /var/www
 # تثبيت اعتماديات PHP الخاصة بـ Laravel بدون حزم التطوير وحزم الاختبار
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# ضبط الصلاحيات للمجلدات الحساسة (Storage و Cache) وهي خطوة إجبارية لـ Laravel
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# --- التعديل الجديد: إنشاء مجلد وقاعدة بيانات SQLite تلقائياً ---
+RUN mkdir -p /var/www/database && touch /var/www/database/database.sqlite
+
+# ضبط الصلاحيات للمجلدات الحساسة وملف قاعدة البيانات (خطوة إجبارية لـ Laravel)
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database
+
 # نسخ إعدادات Nginx المخصصة لـ Laravel داخل الحاوية
 COPY ./nginx.conf /etc/nginx/sites-available/default
 
