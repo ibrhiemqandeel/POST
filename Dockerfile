@@ -51,4 +51,5 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 EXPOSE 80
 
 # أمر التشغيل الذي يقوم بتشغيل PHP-FPM و خادم Nginx معاً عند بدء الحاوية
-CMD service nginx start && php-fpm
+# أمر التشغيل: تنفيذ الترحيل لقاعدة البيانات أولاً، ثم تشغيل Nginx و PHP-FPM
+CMD php artisan migrate --force && service nginx start && php-fpm
