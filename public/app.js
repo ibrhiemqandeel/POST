@@ -647,3 +647,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.POST = { SITE, PRODUCTS, addToCart, toast };
+
+app.use(express.static('public'));
+
