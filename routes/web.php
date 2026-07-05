@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Controller; // استيراد المتحكم هنا
+use App\Http\Controllers\FrontController;
 
-// تعريف الرابط الرئيسي للموقع
-Route::get('/', [Controller::class, 'index'])->name('index');
+Route::get('/', [FrontController::class, 'index'])->name('index');
