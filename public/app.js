@@ -30,7 +30,8 @@ const SITE = {
         { label: "Children", href: window.navLinks.kids },
         { label: "Beauty", href: window.navLinks.beauty },
         { label: "Accessories", href: window.navLinks.accessories },
-        { label: "Our Story", href: window.navLinks.about }
+        { label: "Our Story", href: window.navLinks.about },
+        { label: "Account", href: window.navLinks.login }
     ],
 
     announce: "Complimentary shipping on orders over $120 · Easy 30-day returns",
@@ -242,10 +243,13 @@ function renderHeader() {
           <div class="nav__brand">${logoHTML("logo--sm")}</div>
           <div class="nav__actions">
             <button class="icon-btn js-search" aria-label="Search">${UI.search}</button>
+            <a class="icon-btn" href="contact.html" aria-label="Contact">${UI.mail}
             <button class="icon-btn" aria-label="Account">${UI.user}</button>
+            </a>
             <a class="icon-btn" href="cart.html" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
             <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
           </div>
+
         </nav>
       </div>
     </header>`;

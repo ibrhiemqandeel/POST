@@ -12,3 +12,4 @@ Route::get('/kids', [FrontController::class, 'kids'])->name('kids');
 Route::get('/product', [FrontController::class, 'product'])->name('product');
 Route::get('/women', [FrontController::class, 'women'])->name('women');
 Route::get('/muster', [FrontController::class, 'muster'])->name('muster');
+Route::get('/login', [FrontController::class, 'login'])->name('login');

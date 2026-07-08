@@ -69,4 +69,11 @@ class FrontController extends Controller
             'PageDescription' => 'Discover muster,A world that combines a mothers elegance with her childs happiness.'
         ]);
     }
+    public function login()
+    {
+        return view('login', [
+            'PageTitle' => 'login | POST',
+            'PageDescription' => 'Discover login,A world that combines a mothers elegance with her childs happiness.'
+        ]);
+    }
 }
