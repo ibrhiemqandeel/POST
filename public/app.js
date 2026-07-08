@@ -241,12 +241,14 @@ function renderHeader() {
         <nav class="nav">
           <div class="nav__links">${links}</div>
           <div class="nav__brand">${logoHTML("logo--sm")}</div>
-          <div class="nav__actions">
+        <div class="nav__actions">
             <button class="icon-btn js-search" aria-label="Search">${UI.search}</button>
-            <a class="icon-btn" href="account.html" aria-label="Account">${UI.user}</a>
-            <a class="icon-btn" href="cart.html" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
-            <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
-          </div>
+
+        <a class="icon-btn" href="${window.navLinks.login || '#'}" aria-label="Account">${UI.user}</a>
+
+        <a class="icon-btn" href="cart.html" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
+        <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
+        </div>
 
         </nav>
       </div>

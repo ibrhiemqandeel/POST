@@ -67,7 +67,7 @@
         beauty: "{{ route('beauty') }}",
         accessories: "{{ route('accessories') }}",
         about: "{{ route('about') }}",
-        login: "{{ route('login') }}"
+        login: "{{ route('login') }}",
     };
 </script>
 
