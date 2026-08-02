@@ -31,7 +31,8 @@ const SITE = {
         { label: "Beauty", href: window.navLinks.beauty },
         { label: "Accessories", href: window.navLinks.accessories },
         { label: "Our Story", href: window.navLinks.about },
-        { label: "Account", href: window.navLinks.login }
+        { label: "Account", href: window.navLinks.login },
+        { label: "Bag", href: window.navLinks.cart }
     ],
 
     announce: "Complimentary shipping on orders over $120 · Easy 30-day returns",

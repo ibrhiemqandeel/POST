@@ -68,6 +68,7 @@
         accessories: "{{ route('accessories') }}",
         about: "{{ route('about') }}",
         login: "{{ route('login') }}",
+        cart: "{{ route('cart') }}",
     };
 </script>
 
