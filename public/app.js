@@ -372,7 +372,7 @@ function renderCart() {
         <div class="ic">${UI.bag}</div>
         <h2 class="h-section">Your bag is empty</h2>
         <p class="muted" style="margin:.8rem 0 1.8rem">Once you add something, it will live here, ready when you are.</p>
-        <a class="btn btn--rose" href="${window.navLinks.women || 'women.html'}">Start with Women ${UI.arrow}</a>
+        <a class="btn btn--rose" href="${window.navLinks.women}">Start with Women ${UI.arrow}</a>
       </div>`;
         return;
     }

@@ -490,7 +490,7 @@
     </nav>
     <div class="bar-right">
       <a class="icon-btn" href="#">Account</a>
-      <a class="icon-btn" href="#" aria-current="page">
+      <a class="icon-btn" href="${window.navLinks.cart}" aria-current="page">
         Bag <span class="bag-count" id="headerCount">3</span>
       </a>
     </div>
