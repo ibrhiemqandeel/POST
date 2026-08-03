@@ -660,12 +660,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.POST = { SITE, PRODUCTS, addToCart, toast };
+
 /* FIX #3: removed the stray `app.use(express.static('public'));` line that was
    here. That's server-side Express code — it doesn't belong in a file that
    ships to the browser, and would throw `ReferenceError: app is not defined`
    the moment this script loads. If you need static file serving, put that
    line in your Express server entry file (e.g. server.js / index.js) instead:
-   const express = require('express');
-   const app = express();
-   app.use(express.static('public'));
 */
