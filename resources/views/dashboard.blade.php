@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POST — لوحة التحكم</title>
+<title>POST — لوحة التحكم الإحترافية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -23,8 +23,13 @@
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
   .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+
+  /* Mobile Header */
+  .mobile-nav{display:none;background:var(--ink);color:#fff;padding:12px 20px;justify-content:space-between;align-items:center;}
+  .mobile-nav button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;}
+
   /* Sidebar */
-  .sidebar{background:var(--ink);color:#EFECE2;padding:28px 20px;display:flex;flex-direction:column;gap:28px;}
+  .sidebar{background:var(--ink);color:#EFECE2;padding:28px 20px;display:flex;flex-direction:column;gap:28px;transition:0.3s;}
   .brand{font-family:'Fraunces',serif;font-size:26px;letter-spacing:0.04em;font-weight:500;}
   .brand span{display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#9C9787;margin-top:4px;font-weight:500;}
   .nav{display:flex;flex-direction:column;gap:2px;margin-top:8px;}
@@ -35,15 +40,16 @@
   .sidebar-foot{margin-top:auto;font-size:11px;color:#847F6C;line-height:1.6;border-top:1px solid #35322A;padding-top:16px;}
 
   /* Main */
-  .main{padding:32px 40px;max-width:1200px;}
+  .main{padding:32px 40px;max-width:1200px;width:100%;}
   .topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:20px;flex-wrap:wrap;}
   .page-title{font-family:'Fraunces',serif;font-size:32px;font-weight:500;margin:0;}
   .page-sub{color:var(--ink-soft);font-size:14px;margin-top:4px;}
+  .btn-group{display:flex;gap:10px;}
   .btn{font-family:'Inter';font-size:13.5px;font-weight:600;border:none;border-radius:7px;padding:11px 18px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px;}
   .btn-primary{background:var(--forest);color:#fff;}
   .btn-primary:hover{background:#2D3A2E;}
   .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
-  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--ink);background:#EAE6DA;}
 
   /* Stat cards */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
@@ -52,21 +58,22 @@
   .stat-value{font-family:'Fraunces',serif;font-size:26px;font-weight:500;}
   .stat-tag{font-size:11px;color:var(--forest);margin-top:6px;font-weight:600;}
 
-  /* Filters */
+  /* Toolbar */
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-  .search{flex:1;min-width:200px;position:relative;}
+  .search{flex:1;min-width:200px;}
   .search input{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-family:'Inter';font-size:13.5px;}
   select.filter{padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-family:'Inter';font-size:13.5px;color:var(--ink);}
 
   /* Table */
-  .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
-  table{width:100%;border-collapse:collapse;}
+  .table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:700px;}
   thead th{text-align:right;font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--ink-soft);padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600;}
   tbody td{padding:14px 16px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:#FAF8F2;}
   .prod-cell{display:flex;align-items:center;gap:12px;}
-  .thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--line);flex-shrink:0;}
+  .thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8A8672;font-weight:600;overflow:hidden;}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
   .prod-name{font-weight:600;}
   .prod-cat{font-size:11.5px;color:var(--ink-soft);}
   .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
@@ -78,9 +85,9 @@
   .margin{font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:3px 8px;border-radius:5px;background:var(--forest-dim);color:var(--forest);font-weight:500;}
   .margin.low{background:var(--brick-dim);color:var(--brick);}
   .row-actions{display:flex;gap:6px;}
-  .icon-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;font-size:13px;}
   .icon-btn:hover{border-color:var(--ink);}
-  .icon-btn.danger:hover{border-color:var(--danger);background:var(--brick-dim);}
+  .icon-btn.danger:hover{border-color:var(--danger);background:var(--brick-dim);color:var(--danger);}
   .supplier-src{font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:5px;}
   .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
   .empty-state h3{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500;}
@@ -88,7 +95,7 @@
   /* Modal */
   .overlay{position:fixed;inset:0;background:rgba(33,31,26,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
   .overlay.open{display:flex;}
-  .modal{background:var(--panel);border-radius:14px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:0;}
+  .modal{background:var(--panel);border-radius:14px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:0;box-shadow:0 10px 30px rgba(0,0,0,0.15);}
   .modal-head{padding:24px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
   .modal-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:22px;margin:0;}
   .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink-soft);line-height:1;}
@@ -104,21 +111,29 @@
   .modal-foot{padding:20px 28px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;}
   .section-note{grid-column:1/-1;font-size:11.5px;color:var(--ink-soft);background:var(--paper);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-top:-4px;}
 
-  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
 
   @media (max-width:860px){
     .app{grid-template-columns:1fr;}
-    .sidebar{display:none;}
+    .mobile-nav{display:flex;}
+    .sidebar{display:none;position:fixed;inset:0;z-index:99;width:260px;}
+    .sidebar.open{display:flex;}
     .stats{grid-template-columns:1fr 1fr;}
     .modal-body{grid-template-columns:1fr;}
+    .main{padding:20px;}
   }
 </style>
 </head>
 <body>
 
+<div class="mobile-nav">
+  <div class="brand">POST <span>Admin</span></div>
+  <button onclick="toggleSidebar()">☰</button>
+</div>
+
 <div class="app">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">POST<span>لوحة التحكم — الإدارة</span></div>
     <nav class="nav">
       <div class="nav-item active">↳ المنتجات</div>
@@ -132,23 +147,26 @@
       <div class="nav-item">↳ الفئات</div>
       <div class="nav-item">↳ الحساب</div>
     </nav>
-    <div class="sidebar-foot">نموذج أولي للوحة التحكم — غير متصل بعد بمتجر POST المباشر أو بمزود دروب شوبينغ حقيقي.</div>
+    <div class="sidebar-foot">لوحة التحكم المخصصة لـ POST — تتزامن برمجياً عبر API.</div>
   </aside>
 
   <main class="main">
     <div class="topbar">
       <div>
-        <h1 class="page-title">المنتجات</h1>
+        <h1 class="page-title">إدارة المنتجات</h1>
         <div class="page-sub" id="prodCount">— منتج في الكتالوج</div>
       </div>
-      <button class="btn btn-primary" onclick="openModal()">+ إضافة منتج جديد</button>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="exportJSON()">📥 تصدير JSON</button>
+        <button class="btn btn-primary" onclick="openModal()">+ إضافة منتج جديد</button>
+      </div>
     </div>
 
     <div class="stats" id="statsRow"></div>
 
     <div class="toolbar">
       <div class="search">
-        <input id="searchInput" placeholder="ابحث باسم المنتج أو المورد…" oninput="render()">
+        <input id="searchInput" placeholder="ابحث باسم المنتج، الفئة أو المورد…" oninput="render()">
       </div>
       <select class="filter" id="catFilter" onchange="render()">
         <option value="">كل الفئات</option>
@@ -170,32 +188,33 @@
         <thead>
           <tr>
             <th>المنتج</th>
-            <th>المورد / المصدر</th>
+            <th>المورد / المنصة</th>
             <th>سعر التكلفة</th>
             <th>سعر البيع</th>
             <th>هامش الربح</th>
             <th>الحالة</th>
-            <th></th>
+            <th>إجراءات</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
       <div id="emptyState" class="empty-state" style="display:none">
         <h3>لا توجد منتجات مطابقة</h3>
-        <div>جرّب تغيير البحث أو الفلاتر، أو أضف منتجًا جديدًا.</div>
+        <div>جرّب تغيير عبارة البحث أو الفلاتر، أو أضف منتجاً جديداً.</div>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Modal -->
+<!-- Modal Edit/Create -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-head">
-      <h2>إضافة منتج (دروب شوبينغ)</h2>
+      <h2 id="modalTitle">إضافة منتج (دروب شوبينغ)</h2>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="f_id">
       <div class="field full">
         <label>اسم المنتج</label>
         <input id="f_name" placeholder="مثال: فستان كتان — طبعة كومو">
@@ -210,8 +229,8 @@
         </select>
       </div>
       <div class="field">
-        <label>رابط صورة المنتج</label>
-        <input id="f_img" placeholder="https://…">
+        <label>رابط صورة المنتج (URL)</label>
+        <input id="f_img" placeholder="https://example.com/image.jpg">
       </div>
       <div class="field">
         <label>منصة المورد</label>
@@ -228,16 +247,16 @@
         <input id="f_supplier" placeholder="مثال: Como Textiles Co.">
       </div>
       <div class="field">
-        <label>سعر التكلفة (المورد)</label>
+        <label>سعر التكلفة (المورد $)</label>
         <input id="f_cost" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateMarginPreview()">
       </div>
       <div class="field">
-        <label>سعر البيع (للزبون)</label>
+        <label>سعر البيع (للزبون $)</label>
         <input id="f_price" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateMarginPreview()">
       </div>
       <div class="field">
-        <label>المخزون لدى المورد</label>
-        <input id="f_stock" type="number" min="0" placeholder="0">
+        <label>المخزون المتاح</label>
+        <input id="f_stock" type="number" min="0" placeholder="0" oninput="autoAdjustStatus()">
       </div>
       <div class="field">
         <label>حالة المزامنة</label>
@@ -252,11 +271,11 @@
         <span>هامش الربح المتوقع</span>
         <span class="amt" id="marginAmt">—</span>
       </div>
-      <div class="section-note">في نظام دروب شوبينغ حقيقي (كـ Syncee)، سعر التكلفة والمخزون يُسحبان تلقائيًا من المورد عبر API، ولا يُعدَّلان يدويًا إلا نادرًا.</div>
+      <div class="section-note">تنبيه: يتزامن المخزون والتكلفة آلياً عند الربط المباشر عبر API من المنصات المعتمدة.</div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
-      <button class="btn btn-primary" onclick="saveProduct()">حفظ المنتج</button>
+      <button class="btn btn-primary" onclick="saveProduct()">حفظ البيانات</button>
     </div>
   </div>
 </div>
@@ -270,8 +289,12 @@ let products = [
 ];
 let nextId = 5;
 
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
 function marginPct(cost, price){
-  if(!price || price<=0) return 0;
+  if(!price || price <= 0 || price < cost) return 0;
   return Math.round(((price - cost) / price) * 100);
 }
 
@@ -291,9 +314,9 @@ function render(){
   const statusF = document.getElementById('statusFilter').value;
 
   const filtered = products.filter(p=>{
-    const matchQ = !q || p.name.toLowerCase().includes(q) || p.supplier.toLowerCase().includes(q);
-    const matchCat = !catF || p.cat===catF;
-    const matchStatus = !statusF || p.status===statusF;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.supplier.toLowerCase().includes(q) || p.platform.toLowerCase().includes(q);
+    const matchCat = !catF || p.cat === catF;
+    const matchStatus = !statusF || p.status === statusF;
     return matchQ && matchCat && matchStatus;
   });
 
@@ -301,7 +324,7 @@ function render(){
   const empty = document.getElementById('emptyState');
   document.getElementById('prodCount').textContent = `${products.length} منتج في الكتالوج`;
 
-  if(filtered.length===0){
+  if(filtered.length === 0){
     tbody.innerHTML = '';
     empty.style.display = 'block';
   } else {
@@ -309,11 +332,15 @@ function render(){
     tbody.innerHTML = filtered.map(p=>{
       const m = marginPct(p.cost, p.price);
       const initials = p.name.split(' ')[0].slice(0,2);
+      const imgContent = p.img
+        ? `<img src="${p.img}" alt="${p.name}" onerror="this.onerror=null; this.parentNode.innerText='${initials}';">`
+        : initials;
+
       return `
       <tr>
         <td>
           <div class="prod-cell">
-            <div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:#8A8672;font-weight:600;">${initials}</div>
+            <div class="thumb">${imgContent}</div>
             <div>
               <div class="prod-name">${p.name}</div>
               <div class="prod-cat">${p.cat}</div>
@@ -325,10 +352,11 @@ function render(){
         </td>
         <td class="price-cell">$${p.cost.toFixed(2)}</td>
         <td class="price-cell">$${p.price.toFixed(2)}</td>
-        <td><span class="margin ${m<30?'low':''}">${m}%</span></td>
+        <td><span class="margin ${m < 30 ? 'low' : ''}">${m}%</span></td>
         <td>${statusBadge(p.status)}</td>
         <td>
           <div class="row-actions">
+            <button class="icon-btn" title="تعديل" onclick="editProduct(${p.id})">✏️</button>
             <button class="icon-btn danger" title="حذف" onclick="deleteProduct(${p.id})">✕</button>
           </div>
         </td>
@@ -341,9 +369,9 @@ function render(){
 
 function renderStats(){
   const total = products.length;
-  const synced = products.filter(p=>p.status==='synced').length;
-  const out = products.filter(p=>p.status==='out').length;
-  const avgMargin = total ? Math.round(products.reduce((s,p)=>s+marginPct(p.cost,p.price),0)/total) : 0;
+  const synced = products.filter(p=>p.status === 'synced').length;
+  const out = products.filter(p=>p.status === 'out').length;
+  const avgMargin = total ? Math.round(products.reduce((s,p)=>s + marginPct(p.cost, p.price), 0) / total) : 0;
 
   document.getElementById('statsRow').innerHTML = `
     <div class="stat">
@@ -368,46 +396,83 @@ function renderStats(){
     </div>`;
 }
 
-function openModal(){
+function openModal(isEdit = false){
   document.getElementById('overlay').classList.add('open');
-  ['f_name','f_img','f_supplier','f_cost','f_price','f_stock'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f_cat').value='نساء';
-  document.getElementById('f_platform').value='Syncee';
-  document.getElementById('f_status').value='pending';
+  if(!isEdit){
+    document.getElementById('modalTitle').textContent = 'إضافة منتج (دروب شوبينغ)';
+    document.getElementById('f_id').value = '';
+    ['f_name','f_img','f_supplier','f_cost','f_price','f_stock'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f_cat').value = 'نساء';
+    document.getElementById('f_platform').value = 'Syncee';
+    document.getElementById('f_status').value = 'pending';
+  } else {
+    document.getElementById('modalTitle').textContent = 'تعديل بيانات المنتج';
+  }
   updateMarginPreview();
 }
+
 function closeModal(){
   document.getElementById('overlay').classList.remove('open');
 }
+
 document.getElementById('overlay').addEventListener('click', e=>{
-  if(e.target.id==='overlay') closeModal();
+  if(e.target.id === 'overlay') closeModal();
 });
 
+function autoAdjustStatus(){
+  const stock = parseInt(document.getElementById('f_stock').value) || 0;
+  const statusSelect = document.getElementById('f_status');
+  if(stock === 0){
+    statusSelect.value = 'out';
+  } else if(statusSelect.value === 'out') {
+    statusSelect.value = 'synced';
+  }
+}
+
 function updateMarginPreview(){
-  const cost = parseFloat(document.getElementById('f_cost').value)||0;
-  const price = parseFloat(document.getElementById('f_price').value)||0;
+  const cost = parseFloat(document.getElementById('f_cost').value) || 0;
+  const price = parseFloat(document.getElementById('f_price').value) || 0;
   const m = marginPct(cost, price);
   const box = document.getElementById('marginPreview');
   const amt = document.getElementById('marginAmt');
-  if(price>0){
-    amt.textContent = `${m}% ($${(price-cost).toFixed(2)})`;
-    box.classList.toggle('low', m<30);
+  if(price > 0){
+    const profit = (price - cost).toFixed(2);
+    amt.textContent = `${m}% ($${profit}+)`;
+    box.classList.toggle('low', m < 30);
   } else {
     amt.textContent = '—';
     box.classList.remove('low');
   }
 }
 
+function editProduct(id){
+  const p = products.find(prod => prod.id === id);
+  if(!p) return;
+  document.getElementById('f_id').value = p.id;
+  document.getElementById('f_name').value = p.name;
+  document.getElementById('f_cat').value = p.cat;
+  document.getElementById('f_img').value = p.img || '';
+  document.getElementById('f_platform').value = p.platform;
+  document.getElementById('f_supplier').value = p.supplier;
+  document.getElementById('f_cost').value = p.cost;
+  document.getElementById('f_price').value = p.price;
+  document.getElementById('f_stock').value = p.stock;
+  document.getElementById('f_status').value = p.status;
+  openModal(true);
+}
+
 function saveProduct(){
   const name = document.getElementById('f_name').value.trim();
-  const cost = parseFloat(document.getElementById('f_cost').value)||0;
-  const price = parseFloat(document.getElementById('f_price').value)||0;
-  if(!name || price<=0){
-    alert('يرجى إدخال اسم المنتج وسعر بيع صحيح.');
+  const cost = parseFloat(document.getElementById('f_cost').value) || 0;
+  const price = parseFloat(document.getElementById('f_price').value) || 0;
+  const id = document.getElementById('f_id').value;
+
+  if(!name || price <= 0){
+    alert('يرجى إدخال اسم المنتج وسعر بيع صحيح أكبر من 0.');
     return;
   }
-  products.push({
-    id: nextId++,
+
+  const prodData = {
     name,
     cat: document.getElementById('f_cat').value,
     img: document.getElementById('f_img').value.trim(),
@@ -415,17 +480,39 @@ function saveProduct(){
     supplier: document.getElementById('f_supplier').value.trim() || 'مورد غير محدد',
     cost,
     price,
-    stock: parseInt(document.getElementById('f_stock').value)||0,
+    stock: parseInt(document.getElementById('f_stock').value) || 0,
     status: document.getElementById('f_status').value,
-  });
+  };
+
+  if(id){
+    // Edit existing
+    const index = products.findIndex(p => p.id === parseInt(id));
+    if(index !== -1){
+      products[index] = { id: parseInt(id), ...prodData };
+    }
+  } else {
+    // New product
+    products.push({ id: nextId++, ...prodData });
+  }
+
   closeModal();
   render();
 }
 
 function deleteProduct(id){
-  if(!confirm('هل تريد حذف هذا المنتج من الكتالوج؟')) return;
-  products = products.filter(p=>p.id!==id);
+  if(!confirm('هل انت تأكد من رغبتك في حذف هذا المنتج من الكتالوج؟')) return;
+  products = products.filter(p => p.id !== id);
   render();
+}
+
+function exportJSON(){
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "post_catalog_products.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 }
 
 render();
