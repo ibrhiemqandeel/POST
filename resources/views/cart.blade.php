@@ -478,25 +478,6 @@
 </style>
 <mian>
 
-<header>
-  <div class="bar">
-    <div class="logo">POST</div>
-    <nav class="primary">
-      <a href="https://post-z44n.onrender.com/women.html">Women</a>
-      <a href="https://post-z44n.onrender.com/kids.html">Children</a>
-      <a href="https://post-z44n.onrender.com/beauty.html">Beauty</a>
-      <a href="https://post-z44n.onrender.com/accessories.html">Accessories</a>
-      <a href="https://post-z44n.onrender.com/about.html">The house</a>
-    </nav>
-    <div class="bar-right">
-      <a class="icon-btn" href="#">Account</a>
-      <a class="icon-btn" href="${window.navLinks.cart}" aria-current="page">
-        Bag <span class="bag-count" id="headerCount">3</span>
-      </a>
-    </div>
-  </div>
-</header>
-
 <div class="crumbtitle">
   <div class="crumb"><a href="https://post-z44n.onrender.com/">Home</a> / Bag</div>
   <h1 class="page-title">Your <em>bag.</em></h1>
