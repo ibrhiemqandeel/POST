@@ -276,8 +276,8 @@ function renderMobileMenu() {
     </div>
     <nav>${links}</nav>
     <div class="mobile-menu__foot">
-      <a class="btn btn--ghost btn--sm" href="${window.navLinks.cart || 'cart.html'}">Bag</a>
-      <a class="btn btn--rose btn--sm" href="${window.navLinks.contact || 'contact.html'}">Contact</a>
+      <a class="btn btn--ghost btn--sm" href="${window.navLinks.cart}">Bag</a>
+      <a class="btn btn--rose btn--sm" href="${window.navLinks.contact}">Contact</a>
     </div>`;
     document.body.appendChild(el);
 }
