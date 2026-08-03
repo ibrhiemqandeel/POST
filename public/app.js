@@ -247,7 +247,7 @@ function renderHeader() {
 
         <a class="icon-btn" href="${window.navLinks.login || '#'}" aria-label="Account">${UI.user}</a>
 
-        <a class="icon-btn" href="cart.html" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
+        <a class="icon-btn" href="${window.navLinks.login || '#'}" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
         <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
         </div>
 
@@ -268,8 +268,8 @@ function renderMobileMenu() {
     </div>
     <nav>${links}</nav>
     <div class="mobile-menu__foot">
-      <a class="btn btn--ghost btn--sm" href="cart.html">Bag</a>
-      <a class="btn btn--rose btn--sm" href="contact.html">Contact</a>
+      <a class="btn btn--ghost btn--sm" href="${window.navLinks.cart || 'cart.html'}">Bag</a>
+      <a class="btn btn--rose btn--sm" href="${window.navLinks.contact || 'contact.html'}">Contact</a>
     </div>`;
     document.body.appendChild(el);
 }
@@ -364,7 +364,7 @@ function renderCart() {
         <div class="ic">${UI.bag}</div>
         <h2 class="h-section">Your bag is empty</h2>
         <p class="muted" style="margin:.8rem 0 1.8rem">Once you add something, it will live here, ready when you are.</p>
-        <a class="btn btn--rose" href="women.html">Start with Women ${UI.arrow}</a>
+        <a class="btn btn--rose" href="${window.navLinks.women || 'women.html'}">Start with Women ${UI.arrow}</a>
       </div>`;
         return;
     }
