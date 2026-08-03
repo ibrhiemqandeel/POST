@@ -59,6 +59,11 @@ const SITE = {
                 ]
             },
             {
+                /* FIX #1: was leaking raw Blade syntax `route: "{{ route('contact') }}"`.
+                   This is a static client-side JS file, never processed by Laravel's
+                   Blade engine, so it rendered literally instead of as a link.
+                   Also standardized the property name to `href` to match how
+                   renderFooter() actually reads `l.href` below. */
                 title: "Care", links: [
                     { label: "Contact", href: window.navLinks.contact },
                     { label: "Shipping", href: window.navLinks.contact },
@@ -247,7 +252,10 @@ function renderHeader() {
 
         <a class="icon-btn" href="${window.navLinks.login || '#'}" aria-label="Account">${UI.user}</a>
 
-        <a class="icon-btn" href="${window.navLinks.login || '#'}" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
+        <!-- FIX #2: this used to point to window.navLinks.login (copy-paste bug
+             from the Account link above), so the bag icon opened the login page
+             instead of the cart. Now correctly points to navLinks.cart. -->
+        <a class="icon-btn" href="${window.navLinks.cart || 'cart.html'}" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
         <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
         </div>
 
@@ -652,5 +660,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.POST = { SITE, PRODUCTS, addToCart, toast };
-
-
+/* FIX #3: removed the stray `app.use(express.static('public'));` line that was
+   here. That's server-side Express code — it doesn't belong in a file that
+   ships to the browser, and would throw `ReferenceError: app is not defined`
+   the moment this script loads. If you need static file serving, put that
+   line in your Express server entry file (e.g. server.js / index.js) instead:
+   const express = require('express');
+   const app = express();
+   app.use(express.static('public'));
+*/
