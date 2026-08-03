@@ -32,7 +32,7 @@ const SITE = {
         { label: "Accessories", href: window.navLinks.accessories },
         { label: "Our Story", href: window.navLinks.about },
         { label: "Account", href: window.navLinks.login },
-        { label: "Cart", href: window.navLinks.cart }
+        { label: "Cart", href: window.navLinks.cart },
     ],
 
     announce: "Complimentary shipping on orders over $120 · Easy 30-day returns",
@@ -255,7 +255,7 @@ function renderHeader() {
         <!-- FIX #2: this used to point to window.navLinks.login (copy-paste bug
              from the Account link above), so the bag icon opened the login page
              instead of the cart. Now correctly points to navLinks.cart. -->
-        <a class="icon-btn" href="${window.navLinks.cart || 'cart.html'}" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
+        <a class="icon-btn" href="${window.navLinks.cart }" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
         <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
         </div>
 
