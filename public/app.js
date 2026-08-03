@@ -60,11 +60,11 @@ const SITE = {
             },
             {
                 title: "Care", links: [
-                    { label: "Contact", route: "{{ route('contact') }}" },
-                    { label: "Shipping", route: "{{ route('contact') }}" },
-                    { label: "Returns", route: "{{ route('contact') }}" },
-                    { label: "Size Guide", route: "{{ route('contact') }}" },
-                    { label: "Gift Cards", route: "{{ route('contact') }}" }
+                    { label: "Contact", href: window.navLinks.contact },
+                    { label: "Shipping", href: window.navLinks.contact },
+                    { label: "Returns", href: window.navLinks.contact },
+                    { label: "Size Guide", href: window.navLinks.contact },
+                    { label: "Gift Cards", href: window.navLinks.contact }
                 ]
             }
         ]
@@ -653,5 +653,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.POST = { SITE, PRODUCTS, addToCart, toast };
 
-app.use(express.static('public'));
 
