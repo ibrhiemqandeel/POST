@@ -76,4 +76,11 @@ class FrontController extends Controller
             'description' => 'Discover login,A world that combines a mothers elegance with her childs happiness.'
         ]);
     }
+    public function dashboard()
+    {
+        return view('dashboard', [
+            'title' => 'dashboard | POST',
+            'description' => 'Discover dashboard,A world that combines a mothers elegance with her childs happiness.'
+        ]);
+    }
 }
