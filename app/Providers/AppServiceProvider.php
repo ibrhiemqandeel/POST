@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 
-
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -19,10 +18,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-
-    public function boot()
+    public function boot(): void
     {
-        if (config('app.env') === 'production' || env('FORCE_HTTPS', false)) {
+        // إجبار بروتوكول HTTPS في بيئة الإنتاج على Render
+        if (app()->environment('production') || env('FORCE_HTTPS', false)) {
             URL::forceScheme('https');
         }
     }
