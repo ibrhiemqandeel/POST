@@ -38,7 +38,7 @@ COPY . /var/www
 # تثبيت اعتماديات PHP الخاصة بـ Laravel بدون حزم التطوير وحزم الاختبار
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# --- التعديل الجديد: إنشاء مجلد وقاعدة بيانات SQLite تلقائياً ---
+# --- إنشاء مجلد وقاعدة بيانات SQLite تلقائياً ---
 RUN mkdir -p /var/www/database && touch /var/www/database/database.sqlite
 
 # ضبط الصلاحيات للمجلدات الحساسة وملف قاعدة البيانات (خطوة إجبارية لـ Laravel)
@@ -50,6 +50,5 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 # فتح المنفذ 80 للاستضافة
 EXPOSE 80
 
-# أمر التشغيل الذي يقوم بتشغيل PHP-FPM و خادم Nginx معاً عند بدء الحاوية
-# أمر التشغيل: تنفيذ الترحيل لقاعدة البيانات أولاً، ثم تشغيل Nginx و PHP-FPM
-CMD php artisan migrate --force && service nginx start && php-fpm
+# أمر التشغيل: مسح كاش المسارات والإعدادات، ثم الترحيل لقاعدة البيانات، وأخيراً تشغيل Nginx و PHP-FPM
+CMD sh -c "php artisan route:clear && php artisan config:clear && php artisan migrate --force && service nginx start && php-fpm"
