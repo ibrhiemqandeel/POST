@@ -2,7 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FrontController;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Admin\DashboardController;
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes (Front Controller)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [FrontController::class, 'index'])->name('index');
 Route::get('/about', [FrontController::class, 'about'])->name('about');
 Route::get('/accessories', [FrontController::class, 'accessories'])->name('accessories');
@@ -13,19 +20,30 @@ Route::get('/product', [FrontController::class, 'product'])->name('product');
 Route::get('/women', [FrontController::class, 'women'])->name('women');
 Route::get('/muster', [FrontController::class, 'muster'])->name('muster');
 Route::get('/login', [FrontController::class, 'login'])->name('login');
-Route::get('/dashboard', [FrontController::class, 'dashboard'])->name('dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| Google OAuth Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+/*
+|--------------------------------------------------------------------------
+| User Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [FrontController::class, 'dashboard'])->name('dashboard');
+});
 
-
-use Database\Seeders\AdminUserSeeder;
-use Illuminate\Support\Facades\Artisan;
-
-Route::get('/run-admin-seeder', function () {
-    Artisan::call('db:seed', [
-        '--class' => AdminUserSeeder::class,
-        '--force' => true,
-    ]);
-
-    return 'تم إنشاء حساب الأدمن بنجاح!';
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Protected)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // أضف باقي مسارات لوحة التحكم هنا
 });
