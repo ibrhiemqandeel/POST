@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // الثقة في الـ Proxies الخاصة بـ Render لضمان معالجة HTTPS ورسائل الـ CSRF
+        $middleware->trustProxies(at: '*');
+
         // تسجيل الـ Middleware باسم admin لاستخدامه في ملف المسارات routes/web.php
         $middleware->alias([
             'admin' => AdminMiddleware::class,
