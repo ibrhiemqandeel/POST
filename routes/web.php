@@ -1,14 +1,15 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FrontController;
-use App\Http\Controllers\LoginController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\Admin\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
-| Public & Front Routes
+| Front & Public Routes
 |--------------------------------------------------------------------------
 */
 Route::get('/', [FrontController::class, 'index'])->name('index');
@@ -20,16 +21,44 @@ Route::get('/kids', [FrontController::class, 'kids'])->name('kids');
 Route::get('/product', [FrontController::class, 'product'])->name('product');
 Route::get('/women', [FrontController::class, 'women'])->name('women');
 Route::get('/muster', [FrontController::class, 'muster'])->name('muster');
-Route::get('/dashboard', [FrontController::class, 'dashboard'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Routes (Login & Logout)
+| Authentication Routes (Direct Closures)
 |--------------------------------------------------------------------------
 */
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/login', function () {
+    return view('login');
+})->name('login');
+
+Route::post('/login', function (Request $request) {
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $request->session()->regenerate();
+
+        return redirect()->intended('/dashboard');
+    }
+
+    return back()->withErrors([
+        'email' => 'البيانات المدخلة غير صحيحة.',
+    ])->onlyInput('email');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
+
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/login');
+})->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -41,10 +70,9 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 
 /*
 |--------------------------------------------------------------------------
-| Admin Panel Routes (Protected by Middleware)
+| Admin Panel Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    // أضف باقي مسارات لوحة التحكم هنا
 });
