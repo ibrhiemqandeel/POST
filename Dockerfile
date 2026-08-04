@@ -38,11 +38,16 @@ COPY . /var/www
 # تثبيت اعتماديات PHP الخاصة بـ Laravel بدون حزم التطوير وحزم الاختبار
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# --- إنشاء مجلد وقاعدة بيانات SQLite تلقائياً ---
-RUN mkdir -p /var/www/database && touch /var/www/database/database.sqlite
+# --- إنشاء مجلدات التخزين والجلسات وقاعدة البيانات تلقائياً ---
+RUN mkdir -p /var/www/storage/framework/sessions \
+    /var/www/storage/framework/views \
+    /var/www/storage/framework/cache \
+    /var/www/database \
+    && touch /var/www/database/database.sqlite
 
-# ضبط الصلاحيات للمجلدات الحساسة وملف قاعدة البيانات (خطوة إجبارية لـ Laravel)
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database
+# ضبط ملكية وصلاحيات المجلدات لضمان عمل Sessions و Cache دون أخطاء
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache /var/www/database
 
 # نسخ إعدادات Nginx المخصصة لـ Laravel داخل الحاوية
 COPY ./nginx.conf /etc/nginx/sites-available/default
@@ -51,4 +56,4 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 EXPOSE 80
 
 # أمر التشغيل: مسح كاش المسارات والإعدادات، ثم الترحيل لقاعدة البيانات، وأخيراً تشغيل Nginx و PHP-FPM
-CMD sh -c "php artisan route:clear && php artisan config:clear && php artisan migrate --force && service nginx start && php-fpm"
+CMD ["sh", "-c", "php artisan route:clear && php artisan config:clear && php artisan migrate --force && service nginx start && php-fpm"]
