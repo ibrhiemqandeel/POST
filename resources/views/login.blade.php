@@ -427,7 +427,6 @@
       <!-- Backend Connection: Laravel Form -->
       <form action="{{ route('login') }}" method="POST" id="loginForm">
         @csrf
-
         <div class="field">
           <label for="email">Email address</label>
           <div class="input-wrap">
