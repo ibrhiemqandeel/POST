@@ -83,4 +83,11 @@ class FrontController extends Controller
             'description' => 'Discover dashboard,A world that combines a mothers elegance with her childs happiness.'
         ]);
     }
+    public function signup()
+    {
+        return view('signup', [
+            'title' => 'signup | POST',
+            'description' => 'Discover signup,A world that combines a mothers elegance with her childs happiness.'
+        ]);
+    }
 }
