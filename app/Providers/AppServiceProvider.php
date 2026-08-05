@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,10 +19,19 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(Request $request): void
     {
-        // إجبار بروتوكول HTTPS في بيئة الإنتاج على Render
-        if (app()->environment('production') || env('FORCE_HTTPS', false)) {
+        // الثقة بالـ Proxies الخاصة بـ Render لضمان التعرف على HTTPS
+        $request->setTrustedProxies(
+            ['*'],
+            Request::HEADER_X_FORWARDED_FOR |
+            Request::HEADER_X_FORWARDED_HOST |
+            Request::HEADER_X_FORWARDED_PORT |
+            Request::HEADER_X_FORWARDED_PROTO
+        );
+
+        // إجبار بروتوكول HTTPS في بيئة الإنتاج أو Render
+        if (app()->environment('production') || env('FORCE_HTTPS', false) || $request->server->has('HTTP_X_FORWARDED_PROTO')) {
             URL::forceScheme('https');
         }
     }

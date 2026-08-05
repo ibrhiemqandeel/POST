@@ -467,10 +467,12 @@
           Continue with Google
         </a>
 
-        <button type="button" class="btn-ghost" onclick="alert('Apple Sign In is coming soon.')">
-          <svg width="16" height="16" viewBox="0 0 384 512" fill="var(--ink)"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141 4 184.8 4 273.5c0 26.2 4.8 53.3 14.4 81.2 12.8 37 59 127.6 107.2 126.1 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-83.1 102.6-120.2-65.2-30.7-61.7-90-61.7-91.9zM256.4 88.9c26.9-32 24.5-61.1 23.7-71.6-23.8 1.4-51.4 16.4-67.2 34.9-17.4 19.8-27.6 44.3-25.4 71.3 25.7 2 49.1-10.9 68.9-34.6z"/></svg>
-          Continue with Apple
-        </button>
+        <a href="/auth/facebook" class="btn-ghost">
+  <svg width="16" height="16" viewBox="0 0 512 512" fill="var(--ink)">
+    <path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/>
+  </svg>
+  Continue with Facebook
+</a>
       </div>
 
       <p class="footer-note">By continuing, you agree to POST's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
