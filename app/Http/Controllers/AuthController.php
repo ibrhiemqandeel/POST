@@ -28,11 +28,13 @@ class AuthController extends Controller
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'is_admin' => false, // التسجيل الافتراضي كمستخدم عادي
         ]);
 
         Auth::login($user);
 
-        return redirect()->intended('/');
+        // التوجيه بناءً على الصلاحية
+        return $user->is_admin ? redirect()->intended('/admin') : redirect()->intended('/');
     }
 
     // عرض صفحة تسجيل الدخول
@@ -51,6 +53,12 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
+
+            // التوجيه: إذا كان أدمن يُرسل للوحة التحكم، وإلا للصفحة الرئيسية
+            if (Auth::user()->is_admin) {
+                return redirect()->intended('/admin');
+            }
+
             return redirect()->intended('/');
         }
 
