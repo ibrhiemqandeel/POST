@@ -96,3 +96,12 @@ Route::get('/run-migrations', function () {
     Artisan::call('migrate --force');
     return 'Migrations executed successfully: <br><pre>' . Artisan::output() . '</pre>';
 });
+
+Route::get('/run-migrations', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        return '<h1>Database Migrated Successfully!</h1><pre>' . Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return '<h1>Error:</h1><pre>' . $e->getMessage() . '</pre>';
+    }
+});
