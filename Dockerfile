@@ -48,6 +48,8 @@ RUN mkdir -p /var/www/storage/framework/sessions \
 # ضبط ملكية وصلاحيات المجلدات لضمان عمل Sessions و Cache دون أخطاء
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache /var/www/database
+    
+RUN docker-php-ext-install pdo pdo_pgsql pgsql
 
 # نسخ إعدادات Nginx المخصصة لـ Laravel داخل الحاوية
 COPY ./nginx.conf /etc/nginx/sites-available/default
