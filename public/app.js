@@ -400,3 +400,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initEvents();
     Cart.updateBadge();
 });
+
+

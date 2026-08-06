@@ -5,18 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#5A3A30">
-    <title>{{ $title }}</title>
-    <meta name="description" content="{{ $description }}">
+    <title>{{ $title ?? config('app.name', 'POST') }}</title>
+    <meta name="description" content="{{ $description ?? '' }}">
 
     <!-- Open Graph / social sharing -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $title }}">
-    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:title" content="{{ $title ?? config('app.name', 'POST') }}">
+    <meta property="og:description" content="{{ $description ?? '' }}">
     <meta property="og:image" content="{{ asset('post-logo.png') }}">
     <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title }}">
-    <meta name="twitter:description" content="{{ $description }}">
+    <meta name="twitter:title" content="{{ $title ?? config('app.name', 'POST') }}">
+    <meta name="twitter:description" content="{{ $description ?? '' }}">
 
     <link rel="icon" href="{{ asset('post-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('post-logo.png') }}">
@@ -78,10 +78,6 @@
             border: 0
         }
 
-        /* Skeletons: reserve real header/footer height while app.js injects the
-           actual markup, so the page doesn't jump (CLS) once it lands. Heights
-           match utility-bar + nav (~104px) and footer (~340px) at desktop; adjust
-           if you change those components' real height. */
         .site-header-skeleton {
             min-height: 104px;
             background: linear-gradient(90deg, var(--cream) 25%, var(--cream-2) 37%, var(--cream) 63%);
@@ -108,14 +104,13 @@
         }
 
         @media (prefers-reduced-motion:reduce) {
-
             .site-header-skeleton,
             .site-footer-skeleton {
                 animation: none
             }
         }
 
-        /* RTL support (Arabic / Hebrew / etc.) */
+        /* RTL support */
         html[dir="rtl"] .utility-bar__ship {
             flex-direction: row-reverse
         }
@@ -132,7 +127,7 @@
             flex-direction: row-reverse
         }
 
-        /* ---------- Utility bar ---------- */
+        /* Utility bar */
         .utility-bar {
             background: var(--umber);
             color: #f2e3d8;
@@ -186,7 +181,7 @@
             }
         }
 
-        /* ---------- Header ---------- */
+        /* Header */
         .site-header {
             position: sticky;
             top: 0;
@@ -307,7 +302,7 @@
             }
         }
 
-        /* ---------- Newsletter ---------- */
+        /* Newsletter */
         .news {
             position: relative;
             background: var(--blush);
@@ -344,7 +339,7 @@
             cursor: pointer
         }
 
-        /* ---------- Footer ---------- */
+        /* Footer */
         .site-footer {
             background: var(--ink);
             color: #d9cabd;
@@ -420,7 +415,7 @@
 
 <body data-page="index" data-locale="{{ app()->getLocale() }}">
 
-    <!-- site-header is injected by app.js. Skeleton reserves the height (utility bar + nav) so nothing jumps once the real header lands. -->
+    <!-- site-header Skeleton -->
     <div id="site-header" class="site-header-skeleton" aria-live="polite">
         <span class="sr-only">Loading…</span>
     </div>
@@ -444,34 +439,34 @@
 
     </main>
 
-    <!-- site-footer is injected by app.js -->
+    <!-- site-footer Skeleton -->
     <div id="site-footer" class="site-footer-skeleton" aria-live="polite">
         <span class="sr-only">Loading…</span>
     </div>
+
 <script>
 window.navLinks = {
-    beauty: "{{ route('beauty') }}",
-    accessories: "{{ route('accessories') }}",
-    about: "{{ route('about') }}",
-    login: "{{ route('login') }}",
-    cart: "{{ route('cart') }}",
+    home: "{{ Route::has('home') ? route('home') : url('/') }}",
+    women: "{{ Route::has('women') ? route('women') : '#' }}",
+    kids: "{{ Route::has('kids') ? route('kids') : '#' }}",
+    beauty: "{{ Route::has('beauty') ? route('beauty') : '#' }}",
+    accessories: "{{ Route::has('accessories') ? route('accessories') : '#' }}",
+    about: "{{ Route::has('about') ? route('about') : '#' }}",
+    login: "{{ Route::has('login') ? route('login') : '#' }}",
+    cart: "{{ Route::has('cart') ? route('cart') : '#' }}",
 
-    adminDashboard: "{{ auth()->check() && auth()->user()->is_admin ? route('admin.dashboard') : '' }}",
+    adminDashboard: "{{ (auth()->check() && auth()->user()->is_admin && Route::has('admin.dashboard')) ? route('admin.dashboard') : '' }}",
 
     isLoggedIn: {{ auth()->check() ? 'true' : 'false' }},
-
-    isAdmin: {{ auth()->check() && auth()->user()->is_admin ? 'true' : 'false' }},
+    isAdmin: {{ (auth()->check() && auth()->user()->is_admin) ? 'true' : 'false' }},
 
     locale: "{{ app()->getLocale() }}",
-
     currency: "{{ session('currency', 'USD') }}",
 
     availableLocales: @json(config('app.available_locales', ['en','fr','es','ar'])),
-
     availableCurrencies: @json(config('app.available_currencies', ['USD','EUR','GBP','AED']))
 };
 </script>
 
 </body>
-
 </html>
