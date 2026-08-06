@@ -270,10 +270,9 @@
   .field small.err{
     font-size:11.5px;
     color:var(--rust);
-    display:none;
+    display:block;
   }
   .field.invalid input{ border-color:var(--rust); }
-  .field.invalid small.err{ display:block; }
 
   .strength{
     display:flex;
@@ -415,37 +414,42 @@
     <div class="form-col">
       <div class="panel-eyebrow">Join the House</div>
       <h1 class="title">Create Account</h1>
-      <p class="subtitle">Already have an account? <a href="/login">Sign in</a></p>
+      <p class="subtitle">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
 
-      <form id="signupForm" novalidate>
-        <div class="row-2">
-          <div class="field">
-            <label for="firstName">First name</label>
-            <input type="text" id="firstName" name="firstName" placeholder="e.g. Leyla" required>
-          </div>
-          <div class="field">
-            <label for="lastName">Last name</label>
-            <input type="text" id="lastName" name="lastName" placeholder="e.g. Hassan" required>
-          </div>
+      <form id="signupForm" action="{{ route('signup') }}" method="POST" novalidate>
+        @csrf
+
+        <div class="field @error('name') invalid @enderror">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Leyla Hassan" required>
+          @error('name')
+            <small class="err">{{ $message }}</small>
+          @enderror
         </div>
 
-        <div class="field" id="emailField">
+        <div class="field @error('email') invalid @enderror" id="emailField">
           <label for="email">Email address</label>
-          <input type="email" id="email" name="email" placeholder="name@example.com" required>
-          <small class="err">Please enter a valid email address</small>
+          <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="name@example.com" required>
+          <small class="err" id="jsEmailErr" style="display:none;">Please enter a valid email address</small>
+          @error('email')
+            <small class="err">{{ $message }}</small>
+          @enderror
         </div>
 
-        <div class="field" id="passField">
+        <div class="field @error('password') invalid @enderror" id="passField">
           <label for="password">Password</label>
           <input type="password" id="password" name="password" placeholder="At least 8 characters" required minlength="8">
           <div class="strength"><span></span><span></span><span></span><span></span></div>
           <small class="hint">Use a mix of letters and numbers for a stronger password</small>
+          @error('password')
+            <small class="err">{{ $message }}</small>
+          @enderror
         </div>
 
         <div class="field" id="confirmField">
-          <label for="confirm">Confirm password</label>
-          <input type="password" id="confirm" name="confirm" placeholder="Re-enter your password" required>
-          <small class="err">Passwords do not match</small>
+          <label for="password_confirmation">Confirm password</label>
+          <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Re-enter your password" required>
+          <small class="err" id="jsConfirmErr" style="display:none;">Passwords do not match</small>
         </div>
 
         <label class="terms">
@@ -478,8 +482,9 @@
 <script>
   const form = document.getElementById('signupForm');
   const password = document.getElementById('password');
-  const confirm = document.getElementById('confirm');
+  const confirm = document.getElementById('password_confirmation');
   const email = document.getElementById('email');
+  const agree = document.getElementById('agree');
   const strengthBars = document.querySelectorAll('.strength span');
 
   password.addEventListener('input', () => {
@@ -500,35 +505,41 @@
   }
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault();
     let valid = true;
 
     const emailField = document.getElementById('emailField');
+    const jsEmailErr = document.getElementById('jsEmailErr');
     if (!isValidEmail(email.value)) {
       emailField.classList.add('invalid');
+      if (jsEmailErr) jsEmailErr.style.display = 'block';
       valid = false;
     } else {
       emailField.classList.remove('invalid');
+      if (jsEmailErr) jsEmailErr.style.display = 'none';
     }
 
     const confirmField = document.getElementById('confirmField');
+    const jsConfirmErr = document.getElementById('jsConfirmErr');
     if (password.value !== confirm.value || confirm.value === '') {
       confirmField.classList.add('invalid');
+      if (jsConfirmErr) jsConfirmErr.style.display = 'block';
       valid = false;
     } else {
       confirmField.classList.remove('invalid');
+      if (jsConfirmErr) jsConfirmErr.style.display = 'none';
     }
 
     if (password.value.length < 8) {
       valid = false;
     }
 
-    if (!valid) return;
+    if (!agree.checked) {
+      valid = false;
+    }
 
-    // Replace with real submission logic / API call
-    alert('Account created successfully! (Demo form)');
-    form.reset();
-    strengthBars.forEach(bar => bar.style.background = '#d8cfc0');
+    if (!valid) {
+      e.preventDefault();
+    }
   });
 </script>
 

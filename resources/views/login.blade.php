@@ -406,7 +406,7 @@
     <div class="card">
       <p class="card-eyebrow">Access — Members</p>
       <h2>Sign In</h2>
-      <p class="sub">Join the house of POST to follow your favourite stories and private collections. Don't have an account? <a href="#">Create one</a></p>
+      <p class="sub">Join the house of POST to follow your favourite stories and private collections. Don't have an account? <a href="{{ route('signup') }}">Create one</a></p>
 
       <!-- عرض رسالة الخطأ القادمة من الـ Session إذا وجدت -->
       @if (session('error'))
