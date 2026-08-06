@@ -1,20 +1,16 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GoogleController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\Admin\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
-| Front & Public Routes
+| Public Routes (الصفحات العامة والمنتجات)
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', [FrontController::class, 'index'])->name('index');
 Route::get('/about', [FrontController::class, 'about'])->name('about');
 Route::get('/accessories', [FrontController::class, 'accessories'])->name('accessories');
@@ -23,85 +19,42 @@ Route::get('/cart', [FrontController::class, 'cart'])->name('cart');
 Route::get('/kids', [FrontController::class, 'kids'])->name('kids');
 Route::get('/product', [FrontController::class, 'product'])->name('product');
 Route::get('/women', [FrontController::class, 'women'])->name('women');
-Route::get('/signup', [FrontController::class, 'signup'])->name('signup');
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Routes (Direct Closures)
+| Guest Routes (لغير المسجلين: تسجيل الدخول وإنشاء الحساب)
 |--------------------------------------------------------------------------
 */
-Route::get('/login', function () {
-    return view('login');
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials, $request->boolean('remember'))) {
-        $request->session()->regenerate();
-
-        return redirect()->intended('/dashboard');
-    }
-
-    return back()->withErrors([
-        'email' => 'البيانات المدخلة غير صحيحة.',
-    ])->onlyInput('email');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
-
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect('/login');
-})->name('logout');
-
-/*
-|--------------------------------------------------------------------------
-| Google OAuth Routes
-|--------------------------------------------------------------------------
-*/
-Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
-/*
-|--------------------------------------------------------------------------
-| Admin Panel Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-});
-
-// مسارات الزوار (أنشئ حساب / سجل دخول)
 Route::middleware('guest')->group(function () {
     Route::get('/signup', [AuthController::class, 'showSignup'])->name('signup');
     Route::post('/signup', [AuthController::class, 'register']);
 
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+
+    // Google OAuth
+    Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 });
 
-// مسار تسجيل الخروج
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+/*
+|--------------------------------------------------------------------------
+| User Authenticated Routes (المستخدمين المسجلين)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-Route::get('/run-migrations', function () {
-    Artisan::call('migrate --force');
-    return 'Migrations executed successfully: <br><pre>' . Artisan::output() . '</pre>';
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-Route::get('/run-migrations', function () {
-    try {
-        Artisan::call('migrate', ['--force' => true]);
-        return '<h1>Database Migrated Successfully!</h1><pre>' . Artisan::output() . '</pre>';
-    } catch (\Exception $e) {
-        return '<h1>Error:</h1><pre>' . $e->getMessage() . '</pre>';
-    }
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (لوحة التحكم - محمي بـ Auth & Admin Middleware)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
