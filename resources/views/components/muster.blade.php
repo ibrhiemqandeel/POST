@@ -69,6 +69,10 @@
         about: "{{ route('about') }}",
         login: "{{ route('login') }}",
         cart: "{{ route('cart') }}",
+        // إضافة مسار لوحة التحكم فقط في حال كان المستخدم أدمن مسجل الدخول
+        adminDashboard: "{{ auth()->check() && auth()->user()->is_admin ? route('admin.dashboard') : '' }}",
+        isLoggedIn: "{{ auth()->check() ? 'true' : 'false' }}",
+        isAdmin: "{{ auth()->check() && auth()->user()->is_admin ? 'true' : 'false' }}"
     };
 </script>
 

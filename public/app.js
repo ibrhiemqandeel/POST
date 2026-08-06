@@ -255,7 +255,7 @@ function renderHeader() {
         <!-- FIX #2: this used to point to window.navLinks.login (copy-paste bug
              from the Account link above), so the bag icon opened the login page
              instead of the cart. Now correctly points to navLinks.cart. -->
-        <a class="icon-btn" href="${window.navLinks.cart }" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
+        <a class="icon-btn" href="${window.navLinks.cart}" aria-label="Shopping bag">${UI.bag}<span class="bag-count">0</span></a>
         <button class="icon-btn nav__toggle js-menu-open" aria-label="Menu">${UI.menu}</button>
         </div>
 
@@ -343,327 +343,60 @@ function mountGrids() {
         const limit = parseInt(grid.dataset.limit || "0", 10);
         if (limit) list = list.slice(0, limit);
         grid.innerHTML = list.map(productCard).join("");
-        const counter = document.querySelector(grid.dataset.count || "___none___");
-        if (counter) counter.textContent = `${list.length} pieces`;
+
+        const counter = grid.closest("section")?.querySelector(".js-count");
+        if (counter) counter.textContent = list.length;
     });
 }
 
-/* =================================================================
-   Cart (in-memory for this session)
-   ================================================================= */
-let CART = [];
-function bagCount() { return CART.reduce((n, i) => n + i.qty, 0); }
-function updateBag() { $$(".bag-count").forEach(el => { el.textContent = bagCount(); el.style.display = bagCount() ? "grid" : "none"; }); }
-function addToCart(id, { size = "One Size", color = null, qty = 1 } = {}) {
-    const p = byId(id); if (!p) return;
-    color = color || (p.swatches && p.swatches[0]) || "#BC8472";
-    const key = id + "|" + size + "|" + color;
-    const ex = CART.find(i => i.key === key);
-    if (ex) ex.qty += qty; else CART.push({ key, id, size, color, qty });
-    updateBag(); renderCart();
-    toast(`Added to bag — ${p.name}`);
-}
-
-function renderCart() {
-    const root = $("#cart-root"); if (!root) return;
-    if (CART.length === 0) {
-        root.innerHTML = `
-      <div class="cart-empty reveal in">
-        <div class="ic">${UI.bag}</div>
-        <h2 class="h-section">Your bag is empty</h2>
-        <p class="muted" style="margin:.8rem 0 1.8rem">Once you add something, it will live here, ready when you are.</p>
-        <a class="btn btn--rose" href="${window.navLinks.women}">Start with Women ${UI.arrow}</a>
-      </div>`;
-        return;
+/* ---------- Cart State Management ---------- */
+const Cart = {
+    get() {
+        return JSON.parse(localStorage.getItem("post_cart") || "[]");
+    },
+    set(items) {
+        localStorage.setItem("post_cart", JSON.stringify(items));
+        Cart.updateBadge();
+    },
+    add(id) {
+        const items = Cart.get();
+        const existing = items.find(i => i.id === id);
+        if (existing) existing.qty += 1;
+        else items.push({ id, qty: 1 });
+        Cart.set(items);
+    },
+    updateBadge() {
+        const total = Cart.get().reduce((sum, item) => sum + item.qty, 0);
+        $$(".bag-count").forEach(el => el.textContent = total);
     }
-    const lines = CART.map(item => {
-        const p = byId(item.id);
-        return `<div class="cart-line" data-key="${item.key}">
-      <div class="cart-line__media" style="${mediaStyle(p)}">${illus(p.type)}</div>
-      <div>
-        <h3>${p.name}</h3>
-        <div class="cart-line__sub">${p.cat} · Size ${item.size} · <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${item.color};vertical-align:middle;border:1px solid rgba(0,0,0,.12)"></span></div>
-        <div class="qty" style="margin-top:.8rem">
-          <button class="js-qty" data-key="${item.key}" data-dir="-1" aria-label="Decrease">–</button>
-          <span>${item.qty}</span>
-          <button class="js-qty" data-key="${item.key}" data-dir="1" aria-label="Increase">+</button>
-        </div>
-      </div>
-      <div>
-        <div class="cart-line__price">${money(p.price * item.qty)}</div>
-        <button class="cart-line__remove js-remove" data-key="${item.key}">Remove</button>
-      </div>
-    </div>`;
-    }).join("");
-    const sub = CART.reduce((s, i) => s + byId(i.id).price * i.qty, 0);
-    const ship = sub >= 120 || sub === 0 ? 0 : 9;
-    const total = sub + ship;
-    root.innerHTML = `
-    <div class="cart-grid">
-      <div>
-        <div class="toolbar" style="margin-bottom:.5rem">
-          <span class="result-count">${bagCount()} item${bagCount() > 1 ? "s" : ""} in your bag</span>
-          <button class="link-underline js-clear">Clear all</button>
-        </div>
-        ${lines}
-      </div>
-      <aside class="summary">
-        <h3>Order Summary</h3>
-        <div class="promo">
-          <input type="text" placeholder="Promo code" aria-label="Promo code">
-          <button class="btn btn--ghost btn--sm js-promo">Apply</button>
-        </div>
-        <div class="summary__row"><span>Subtotal</span><span>${money(sub)}</span></div>
-        <div class="summary__row"><span>Shipping</span><span>${ship === 0 ? "Complimentary" : money(ship)}</span></div>
-        <div class="summary__row"><span>Estimated tax</span><span>Calculated at checkout</span></div>
-        <div class="summary__row total"><span>Total</span><span>${money(total)}</span></div>
-        <button class="btn btn--rose btn--block js-checkout" style="margin-top:1.4rem">Proceed to checkout ${UI.arrow}</button>
-        <p class="muted" style="font-size:.74rem;text-align:center;margin-top:1rem">Secure checkout · ${ship === 0 ? "You've unlocked free shipping" : `Add ${money(120 - sub)} for free shipping`}</p>
-      </aside>
-    </div>`;
-}
+};
 
-/* seed a couple of items so the cart page is demonstrable */
-function seedCart() {
-    if ($("#cart-root") && CART.length === 0) {
-        addToCartSilent("w4", { size: "M", color: "#9E7E68", qty: 1 });
-        addToCartSilent("a2", { size: "One Size", color: "#C9B7A6", qty: 1 });
-        renderCart(); updateBag();
-    }
-}
-function addToCartSilent(id, opts) { const before = toast; window.__silent = true; addToCart(id, opts); window.__silent = false; }
-
-/* =================================================================
-   Product detail page
-   ================================================================= */
-function renderPDP() {
-    const root = $("#pdp-root"); if (!root) return;
-    const id = new URLSearchParams(location.search).get("id") || "w1";
-    const p = byId(id) || PRODUCTS[0];
-    document.title = `${p.name} — ${SITE.brand}`;
-    const sizes = p.page === "beauty" ? ["Standard"] :
-        p.page === "accessories" ? ["One Size"] :
-            p.page === "kids" ? ["2–3y", "4–5y", "6–7y", "8–9y"] : ["XS", "S", "M", "L", "XL"];
-    const swatches = p.swatches || ["#BC8472"];
-    const save = p.was ? Math.round((1 - p.price / p.was) * 100) : 0;
-
-    root.innerHTML = `
-    <div class="crumb reveal in">
-      <a href="index.html">Home</a><span>/</span>
-      <a href="${p.page}.html">${p.page.charAt(0).toUpperCase() + p.page.slice(1)}</a><span>/</span>
-      ${p.cat}
-    </div>
-    <div class="pdp">
-      <div class="pdp__gallery reveal" data-d="1">
-        <div class="pdp__main" id="pdpMain" style="${mediaStyle(p)}">${illus(p.type)}</div>
-        <div class="pdp__thumbs">
-          ${[0, 1, 2, 3].map(i => `<div class="pdp__thumb ${i === 0 ? 'active' : ''}" style="${mediaStyle(p)}">${illus(p.type)}</div>`).join("")}
-        </div>
-      </div>
-      <div class="pdp__info reveal" data-d="2">
-        <span class="eyebrow">${p.cat}</span>
-        <h1>${p.name}</h1>
-        <div class="pdp__rating">${stars(p.rating)} <span class="muted">${p.rating} · ${p.reviews} reviews</span></div>
-        <div class="pdp__price">${money(p.price)} ${p.was ? `<s>${money(p.was)}</s><span class="save">Save ${save}%</span>` : ""}</div>
-        <p class="lead" style="font-size:1.05rem">${p.desc}</p>
-
-        <div class="opt">
-          <div class="opt__label"><span>Colour</span><span id="colorName" style="text-transform:none;letter-spacing:0;color:var(--ink-2)"></span></div>
-          <div class="swatch-row" id="swatches">
-            ${swatches.map((c, i) => `<button class="swatch ${i === 0 ? 'active' : ''}" data-color="${c}" style="background:${c}" aria-label="Colour ${i + 1}"></button>`).join("")}
-          </div>
-        </div>
-
-        <div class="opt">
-          <div class="opt__label"><span>${p.page === "beauty" || p.page === "accessories" ? "Option" : "Size"}</span><a href="contact.html" class="link-underline" style="font-size:.66rem">Size guide</a></div>
-          <div class="size-row" id="sizes">
-            ${sizes.map((s, i) => `<button class="size ${i === Math.min(2, sizes.length - 1) ? 'active' : ''}">${s}</button>`).join("")}
-          </div>
-        </div>
-
-        <div class="pdp__buy">
-          <div class="qty">
-            <button class="js-pdp-qty" data-dir="-1" aria-label="Decrease">–</button>
-            <span id="pdpQty">1</span>
-            <button class="js-pdp-qty" data-dir="1" aria-label="Increase">+</button>
-          </div>
-          <button class="btn btn--rose js-pdp-add" data-id="${p.id}">Add to bag · ${money(p.price)}</button>
-        </div>
-
-        <div class="usp-row">
-          <span class="usp">${UI.truck} Free shipping over $120</span>
-          <span class="usp">${UI.refresh} 30-day returns</span>
-          <span class="usp">${UI.leaf} Responsibly made</span>
-        </div>
-
-        <div class="accordion">
-          <div class="acc open">
-            <button class="acc__head js-acc">The Origin Story <span class="pm">+</span></button>
-            <div class="acc__body"><p>${p.origin}</p></div>
-          </div>
-          <div class="acc">
-            <button class="acc__head js-acc">Details &amp; Materials <span class="pm">+</span></button>
-            <div class="acc__body"><p>Thoughtfully constructed for longevity. Each piece arrives in recycled, plastic-free packaging with a card telling you where it began. ${p.page === "beauty" ? "Dermatologist-tested and cruelty-free." : "Care: follow the label to keep it at its best for years."}</p></div>
-          </div>
-          <div class="acc">
-            <button class="acc__head js-acc">Shipping &amp; Returns <span class="pm">+</span></button>
-            <div class="acc__body"><p>Complimentary carbon-neutral shipping on orders over $120. Returns are free within 30 days — we'll send a prepaid label and re-home or recycle anything that comes back.</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <section class="section--tight" style="margin-top:2rem">
-      <div class="sec-head"><div><span class="eyebrow">You may also like</span><h2 class="h-section sec-head__title" style="margin-top:.6rem">Pieces with a kindred spirit</h2></div></div>
-      <div class="prod-grid" id="relatedGrid"></div>
-    </section>`;
-
-    // related
-    const related = PRODUCTS.filter(x => x.page === p.page && x.id !== p.id).slice(0, 4);
-    $("#relatedGrid").innerHTML = related.map(productCard).join("");
-
-    // colour name label
-    const names = ["Rosewood", "Ink", "Oat", "Clay", "Blush", "Sand", "Mauve", "Pearl"];
-    const setColorName = i => { $("#colorName").textContent = names[i % names.length]; };
-    setColorName(0);
-
-    // interactions specific to PDP
-    let qty = 1;
-    $$(".js-pdp-qty").forEach(b => b.addEventListener("click", () => {
-        qty = Math.max(1, qty + parseInt(b.dataset.dir, 10));
-        $("#pdpQty").textContent = qty;
-    }));
-    $$("#swatches .swatch").forEach((b, i) => b.addEventListener("click", () => {
-        $$("#swatches .swatch").forEach(s => s.classList.remove("active"));
-        b.classList.add("active"); setColorName(i);
-    }));
-    $$("#sizes .size").forEach(b => b.addEventListener("click", () => {
-        $$("#sizes .size").forEach(s => s.classList.remove("active")); b.classList.add("active");
-    }));
-    $(".js-pdp-add").addEventListener("click", () => {
-        const color = $("#swatches .swatch.active")?.dataset.color;
-        const size = $("#sizes .size.active")?.textContent || "One Size";
-        addToCart(p.id, { size, color, qty });
-    });
-}
-
-/* =================================================================
-   Generic interactions
-   ================================================================= */
-function wireInteractions() {
-    // sticky header shadow
-    const hdr = $("#hdr");
-    const onScroll = () => hdr && hdr.classList.toggle("scrolled", window.scrollY > 16);
-    onScroll(); window.addEventListener("scroll", onScroll, { passive: true });
-
-    // mobile menu
+/* ---------- Event Listeners & Initialization ---------- */
+function initEvents() {
     document.addEventListener("click", e => {
-        if (e.target.closest(".js-menu-open")) $("#mobileMenu")?.classList.add("open");
-        if (e.target.closest(".js-menu-close")) $("#mobileMenu")?.classList.remove("open");
+        if (e.target.closest(".js-menu-open")) $("#mobileMenu")?.classList.add("is-active");
+        if (e.target.closest(".js-menu-close")) $("#mobileMenu")?.classList.remove("is-active");
+
+        const addBtn = e.target.closest(".js-add");
+        if (addBtn) {
+            const id = addBtn.dataset.id;
+            Cart.add(id);
+        }
+
+        const favBtn = e.target.closest(".js-fav");
+        if (favBtn) {
+            favBtn.classList.toggle("is-active");
+            favBtn.innerHTML = favBtn.classList.contains("is-active") ? UI.heartFill : UI.heart;
+        }
     });
-
-    // delegated buttons
-    document.addEventListener("click", e => {
-        const add = e.target.closest(".js-add");
-        if (add) { addToCart(add.dataset.id); return; }
-
-        const fav = e.target.closest(".js-fav");
-        if (fav) {
-            fav.classList.toggle("active");
-            fav.innerHTML = fav.classList.contains("active") ? UI.heartFill : UI.heart;
-            return;
-        }
-
-        const acc = e.target.closest(".js-acc");
-        if (acc) {
-            const item = acc.closest(".acc");
-            const body = item.querySelector(".acc__body");
-            const open = item.classList.toggle("open");
-            body.style.maxHeight = open ? body.scrollHeight + "px" : "0";
-            return;
-        }
-
-        const q = e.target.closest(".js-qty");
-        if (q) {
-            const it = CART.find(i => i.key === q.dataset.key);
-            if (it) { it.qty = Math.max(1, it.qty + parseInt(q.dataset.dir, 10)); updateBag(); renderCart(); }
-            return;
-        }
-        const rm = e.target.closest(".js-remove");
-        if (rm) { CART = CART.filter(i => i.key !== rm.dataset.key); updateBag(); renderCart(); toast("Removed from bag"); return; }
-        if (e.target.closest(".js-clear")) { CART = []; updateBag(); renderCart(); return; }
-        if (e.target.closest(".js-checkout")) { e.preventDefault(); toast("Checkout is a demo — no payment taken ✦"); return; }
-        if (e.target.closest(".js-promo")) { e.preventDefault(); toast("Promo codes are disabled in this demo"); return; }
-        if (e.target.closest(".js-search")) { toast("Search is a demo in this preview"); return; }
-
-        // pill filters (decorative active state)
-        const pill = e.target.closest(".pill");
-        if (pill && pill.parentElement.classList.contains("pills")) {
-            pill.parentElement.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
-            pill.classList.add("active");
-            return;
-        }
-        // pagination (decorative)
-        const pg = e.target.closest(".pagination button");
-        if (pg) { pg.parentElement.querySelectorAll("button").forEach(x => x.classList.remove("active")); pg.classList.add("active"); }
-    });
-
-    // open first accordion bodies on load (set max-height)
-    $$(".acc.open .acc__body").forEach(b => b.style.maxHeight = b.scrollHeight + "px");
-
-    // forms (newsletter / contact)
-    $$(".js-form").forEach(f => f.addEventListener("submit", e => {
-        e.preventDefault();
-        f.reset?.();
-        toast(f.dataset.toast || "Thank you — we'll be in touch ✦");
-    }));
 }
 
-/* ---------- Reveal on scroll ---------- */
-function wireReveals() {
-    const els = $$(".reveal:not(.in)");
-    if (!("IntersectionObserver" in window)) { els.forEach(el => el.classList.add("in")); return; }
-    const io = new IntersectionObserver((entries) => {
-        entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
-    }, { threshold: .12, rootMargin: "0px 0px -8% 0px" });
-    els.forEach(el => io.observe(el));
-}
-
-/* ---------- Toast ---------- */
-function toast(msg) {
-    if (window.__silent) return;
-    let wrap = $(".toast-wrap");
-    if (!wrap) { wrap = document.createElement("div"); wrap.className = "toast-wrap"; document.body.appendChild(wrap); }
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.innerHTML = `<span class="ic">${UI.check}</span><span>${msg}</span>`;
-    wrap.appendChild(t);
-    requestAnimationFrame(() => t.classList.add("show"));
-    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 500); }, 2600);
-}
-
-/* =================================================================
-   Boot
-   ================================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     applyTheme();
     renderHeader();
     renderMobileMenu();
     renderFooter();
     mountGrids();
-    renderPDP();
-    seedCart();
-    renderCart();
-    updateBag();
-    wireInteractions();
-    wireReveals();
+    initEvents();
+    Cart.updateBadge();
 });
-
-window.POST = { SITE, PRODUCTS, addToCart, toast };
-
-/* FIX #3: removed the stray `app.use(express.static('public'));` line that was
-   here. That's server-side Express code — it doesn't belong in a file that
-   ships to the browser, and would throw `ReferenceError: app is not defined`
-   the moment this script loads. If you need static file serving, put that
-   line in your Express server entry file (e.g. server.js / index.js) instead:
-*/
