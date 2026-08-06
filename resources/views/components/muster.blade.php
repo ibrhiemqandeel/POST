@@ -94,213 +94,19 @@
         }
 
         @keyframes skeleton-pulse {
-            0% {
-                background-position: 100% 0
-            }
-
-            100% {
-                background-position: 0 0
-            }
+            0% { background-position: 100% 0 }
+            100% { background-position: 0 0 }
         }
 
         @media (prefers-reduced-motion:reduce) {
-            .site-header-skeleton,
-            .site-footer-skeleton {
-                animation: none
-            }
+            .site-header-skeleton, .site-footer-skeleton { animation: none }
         }
 
         /* RTL support */
-        html[dir="rtl"] .utility-bar__ship {
-            flex-direction: row-reverse
-        }
-
-        html[dir="rtl"] .nav__links {
-            flex-direction: row-reverse
-        }
-
-        html[dir="rtl"] .footer-grid {
-            direction: rtl
-        }
-
-        html[dir="rtl"] .news__form {
-            flex-direction: row-reverse
-        }
-
-        /* Utility bar */
-        .utility-bar {
-            background: var(--umber);
-            color: #f2e3d8;
-            font-size: .78rem
-        }
-
-        .utility-bar .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-block: .55rem;
-            gap: 1rem;
-            flex-wrap: wrap
-        }
-
-        .utility-bar__ship {
-            display: flex;
-            align-items: center;
-            gap: .5rem
-        }
-
-        .utility-bar__ship svg {
-            width: 14px;
-            height: 14px;
-            opacity: .85
-        }
-
-        .switchers {
-            display: flex;
-            gap: 1.1rem;
-            align-items: center
-        }
-
-        .switcher select {
-            appearance: none;
-            background: transparent;
-            border: none;
-            color: #f2e3d8;
-            font: inherit;
-            font-size: .78rem;
-            cursor: pointer
-        }
-
-        .switcher select option {
-            color: var(--ink)
-        }
-
-        @media (max-width:700px) {
-            .utility-bar__ship span {
-                display: none
-            }
-        }
-
-        /* Header */
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            background: rgba(246, 239, 230, .9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--line)
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-block: 1rem
-        }
-
-        .wordmark {
-            display: flex;
-            align-items: center
-        }
-
-        .wordmark__logo {
-            height: 28px;
-            width: auto;
-            display: block
-        }
-
-        .nav__links {
-            display: flex;
-            gap: 2.1rem;
-            font-size: .92rem;
-            font-weight: 500
-        }
-
-        .nav__links a {
-            position: relative;
-            padding-bottom: .2rem;
-            color: var(--ink);
-            text-decoration: none
-        }
-
-        .nav__links a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0;
-            height: 1px;
-            background: var(--rose-deep);
-            transition: width .3s
-        }
-
-        .nav__links a:hover::after {
-            width: 100%
-        }
-
-        .nav__icons {
-            display: flex;
-            gap: 1rem;
-            align-items: center
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            color: var(--ink)
-        }
-
-        .icon-btn svg {
-            width: 19px;
-            height: 19px
-        }
-
-        .nav__burger {
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-            background: none;
-            border: none;
-            cursor: pointer
-        }
-
-        .nav__burger span {
-            width: 20px;
-            height: 1.4px;
-            background: var(--ink)
-        }
-
-        .nav__mobile {
-            display: none;
-            flex-direction: column;
-            gap: .2rem;
-            padding: 0 1.25rem 1rem;
-            border-top: 1px solid var(--line)
-        }
-
-        .nav__mobile a {
-            padding: .7rem 0;
-            color: var(--ink);
-            text-decoration: none;
-            border-bottom: 1px solid var(--line)
-        }
-
-        @media (max-width:860px) {
-            .nav__links {
-                display: none
-            }
-
-            .nav__burger {
-                display: flex
-            }
-
-            .nav__mobile.is-open {
-                display: flex
-            }
-        }
+        html[dir="rtl"] .utility-bar__ship { flex-direction: row-reverse }
+        html[dir="rtl"] .nav__links { flex-direction: row-reverse }
+        html[dir="rtl"] .footer-grid { direction: rtl }
+        html[dir="rtl"] .news__form { flex-direction: row-reverse }
 
         /* Newsletter */
         .news {
@@ -338,90 +144,19 @@
             font-weight: 600;
             cursor: pointer
         }
-
-        /* Footer */
-        .site-footer {
-            background: var(--ink);
-            color: #d9cabd;
-            padding-block: 3.5rem 2rem
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr 1fr 1fr;
-            gap: 2.5rem
-        }
-
-        @media (max-width:800px) {
-            .footer-grid {
-                grid-template-columns: 1fr 1fr
-            }
-        }
-
-        .footer-grid h4 {
-            font-size: .78rem;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            color: #efe3d8;
-            margin-bottom: 1rem
-        }
-
-        .footer-grid ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: .6rem;
-            font-size: .88rem;
-            margin: 0;
-            padding: 0
-        }
-
-        .footer-grid ul a {
-            color: #d9cabd;
-            text-decoration: none
-        }
-
-        .footer-grid ul a:hover {
-            color: var(--rose-light)
-        }
-
-        .foot-word {
-            font-family: 'Fraunces', serif;
-            color: var(--cream);
-            font-size: 1.4rem;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: .8rem
-        }
-
-        .foot-tagline {
-            max-width: 30ch;
-            font-size: .88rem;
-            color: #c2b0a2
-        }
-
-        .foot-bottom {
-            margin-top: 3rem;
-            padding-top: 1.6rem;
-            border-top: 1px solid rgba(217, 202, 189, .18);
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: .78rem
-        }
     </style>
 </head>
 
 <body data-page="index" data-locale="{{ app()->getLocale() }}">
 
-    <!-- site-header Skeleton -->
+    <!-- site-header Skeleton (تم حشف الهيدر الحقيقي ليتم حقنه ديناميكياً بواسطة app.js) -->
     <div id="site-header" class="site-header-skeleton" aria-live="polite">
         <span class="sr-only">Loading…</span>
     </div>
 
     <main class="main-content">
 
+        {{-- المحتوى الذي سيتم تمريره من الصفحة الرئيسية --}}
         {{ $slot }}
 
         <section class="section container">
