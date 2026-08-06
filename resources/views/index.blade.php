@@ -32,7 +32,7 @@
     <!-- ============ HEADER / NAVBAR ============ -->
     <header class="site-header">
         <div class="container nav">
-            <a class="wordmark" href="{{ route('home') }}">
+            <a class="wordmark" href="{{ route('index') }}">
                 <img src="{{ asset('post-logo.png') }}" alt="POST" class="wordmark__logo">
             </a>
 
