@@ -7,6 +7,7 @@ use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,3 +91,8 @@ Route::middleware('guest')->group(function () {
 
 // مسار تسجيل الخروج
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+Route::get('/run-migrations', function () {
+    Artisan::call('migrate --force');
+    return 'Migrations executed successfully: <br><pre>' . Artisan::output() . '</pre>';
+});
