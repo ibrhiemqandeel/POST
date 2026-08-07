@@ -287,8 +287,7 @@
     // مباشرة، لأنه هذا كان يسبب خطأ "Unclosed '[' does not match ')'" بمحول Blade.
     $availableLocales = config('app.available_locales', ['en', 'fr', 'es', 'ar']);
     $availableCurrencies = config('app.available_currencies', ['USD', 'EUR', 'GBP', 'AED']);
-        availableLocales: @json($availableLocales);
-        availableCurrencies: @json($availableCurrencies)
+
 @endphp
 
 <script>
@@ -336,6 +335,8 @@ currency: "{{ session('currency', 'USD') }}",
             });
         }
     });
+
+     
 </script>
 
 </body>

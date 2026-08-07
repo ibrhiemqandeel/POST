@@ -402,3 +402,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+   availableLocales: json($availableLocales);
+        availableCurrencies: json($availableCurrencies)
