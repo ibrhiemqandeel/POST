@@ -287,7 +287,6 @@
     // مباشرة، لأنه هذا كان يسبب خطأ "Unclosed '[' does not match ')'" بمحول Blade.
     $availableLocales = config('app.available_locales', ['en', 'fr', 'es', 'ar']);
     $availableCurrencies = config('app.available_currencies', ['USD', 'EUR', 'GBP', 'AED']);
-
 @endphp
 
 <script>
@@ -303,11 +302,12 @@
         cart: "{{ Route::has('cart') ? route('cart') : '#' }}",
 
         adminDashboard: "{{ $adminDashboardUrl }}",
-isLoggedIn: "{{ $isLoggedIn ? 'true' : 'false' }}",
-isAdmin: "{{ $isAdmin ? 'true' : 'false' }}",
 
-locale: "{{ app()->getLocale() }}",
-currency: "{{ session('currency', 'USD') }}",
+        isLoggedIn: "{{ $isLoggedIn ? 'true' : 'false' }}",
+        isAdmin: "{{ $isAdmin ? 'true' : 'false' }}",
+
+        locale: "{{ app()->getLocale() }}",
+        currency: "{{ session('currency', 'USD') }}",
 
 
     };
@@ -335,8 +335,6 @@ currency: "{{ session('currency', 'USD') }}",
             });
         }
     });
-
-     
 </script>
 
 </body>
