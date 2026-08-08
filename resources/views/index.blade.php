@@ -102,6 +102,19 @@
         @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
         .split__media { aspect-ratio: 5/4; border-radius: var(--radius); overflow: hidden; }
         .split__media--art { background: linear-gradient(155deg, #5a3a30, #9E5F4D 60%, #C08B73); display: grid; place-items: center; color: #f4dccf; }
+        .split__media-icon { width: 42%; opacity: .9; }
+
+        /* ---------- Inline styles moved here ---------- */
+        .hero__visual--art { background: linear-gradient(155deg, #E9C7BA, #B0715C 70%, #8C4E38); color: #fff2ea; display: grid; place-items: center; }
+        .hero__visual-icon { width: 56%; opacity: .92; }
+        .cat-card__art--women { background: linear-gradient(150deg, #C9967E, #8C4E38); }
+        .cat-card__art--kids { background: linear-gradient(150deg, #E6B6A2, #B0715C); }
+        .cat-card__art--beauty { background: linear-gradient(150deg, #A8634F, #5a3a30); }
+        .cat-card__art--accessories { background: linear-gradient(150deg, #BBA189, #7E6E5C); }
+        .origin-title { margin-bottom: 1rem; }
+        .origin-lead { margin-bottom: 1.6rem; }
+        .world-lead { max-width: 44ch; }
+        .newsletter-lead { margin-inline: auto; }
 
         .values-strip { background: var(--cream-2); border-block: 1px solid var(--line); }
         .values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
@@ -149,8 +162,8 @@
                         <a class="btn btn--ghost" href="#kids">Shop Children</a>
                     </div>
                 </div>
-                <div class="hero__visual reveal" data-d="2" style="background:linear-gradient(155deg,#E9C7BA,#B0715C 70%,#8C4E38);color:#fff2ea;display:grid;place-items:center">
-                    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:56%;opacity:.92" aria-hidden="true">
+                <div class="hero__visual hero__visual--art reveal" data-d="2">
+                    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="hero__visual-icon" aria-hidden="true">
                         <path d="M40 22 L33 31 L38 35 Q35 56 30 78 L70 78 Q65 56 62 35 L67 31 L60 22 Q50 28 40 22 Z" />
                         <path d="M44 23 Q50 27 56 23" />
                         <path d="M38 50 Q50 54 62 50" />
@@ -183,22 +196,22 @@
         </div>
         <div class="cat-grid">
             <a class="cat-card reveal" id="women" href="/women">
-                <div class="cat-card__art" style="background:linear-gradient(150deg,#C9967E,#8C4E38)"></div>
+                <div class="cat-card__art cat-card__art--women"></div>
                 <span class="arrow">→</span>
                 <div><small>For her</small><h3>Women</h3></div>
             </a>
             <a class="cat-card reveal" data-d="1" id="kids" href="/kids">
-                <div class="cat-card__art" style="background:linear-gradient(150deg,#E6B6A2,#B0715C)"></div>
+                <div class="cat-card__art cat-card__art--kids"></div>
                 <span class="arrow">→</span>
                 <div><small>Little ones</small><h3>Children</h3></div>
             </a>
             <a class="cat-card reveal" data-d="2" href="/beauty">
-                <div class="cat-card__art" style="background:linear-gradient(150deg,#A8634F,#5a3a30)"></div>
+                <div class="cat-card__art cat-card__art--beauty"></div>
                 <span class="arrow">→</span>
                 <div><small>Skin &amp; colour</small><h3>Beauty</h3></div>
             </a>
             <a class="cat-card reveal" data-d="3" href="/accessories">
-                <div class="cat-card__art" style="background:linear-gradient(150deg,#BBA189,#7E6E5C)"></div>
+                <div class="cat-card__art cat-card__art--accessories"></div>
                 <span class="arrow">→</span>
                 <div><small>Finishing touches</small><h3>Accessories</h3></div>
             </a>
@@ -220,7 +233,7 @@
                 <a class="prod-card" href="{{ url('/products/'.$product->id) }}">
                     {{-- عرض صورة المنتج الفعلية من قاعدة البيانات، أو خلفية تدرج افتراضية إذا لم تتوفر صورة --}}
                     <div class="prod-card__img"
-                         style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};'>
+                         style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};">
                         @if(!empty($product->tag))
                             <span class="tag">{{ $product->tag }}</span>
                         @endif
@@ -241,7 +254,7 @@
         </div>
 
         {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة --}}
-        @if((method_exists($products, 'links')) && $products->hasPages())
+        @if(method_exists($products, 'links'))
             <div class="d-flex justify-content-center mt-4">
                 {{ $products->links() }}
             </div>
@@ -252,7 +265,7 @@
     <section class="section container">
         <div class="split reveal">
             <div class="split__media split__media--art">
-                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="width:42%;opacity:.9" aria-hidden="true">
+                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="split__media-icon" aria-hidden="true">
                     <rect x="36" y="40" width="28" height="38" rx="6" />
                     <rect x="44" y="27" width="12" height="13" rx="2" />
                     <rect x="42" y="19" width="16" height="8" rx="2" />
@@ -261,8 +274,8 @@
             </div>
             <div class="split__body">
                 <span class="eyebrow">Our name, our promise</span>
-                <h2 class="h-section" style="margin-bottom:1rem">Premium Origin Stories &amp; Thoughts</h2>
-                <p class="lead" style="margin-bottom:1.6rem">Every garment, every shade, every accessory arrives with a card that tells you where it began — the mill, the maker, the hands. We believe knowing the origin is part of the pleasure of owning something well made.</p>
+                <h2 class="h-section origin-title">Premium Origin Stories &amp; Thoughts</h2>
+                <p class="lead origin-lead">Every garment, every shade, every accessory arrives with a card that tells you where it began — the mill, the maker, the hands. We believe knowing the origin is part of the pleasure of owning something well made.</p>
                 <a class="btn btn--ghost" href="#">Read the house story</a>
             </div>
         </div>
@@ -286,7 +299,7 @@
             <div class="reveal">
                 <span class="eyebrow">One house, everywhere</span>
                 <h2 class="h-section">A story that travels well</h2>
-                <p class="lead" style="max-width:44ch">From the mill in Como to a doorstep in Seoul, Toronto or Lagos — POST ships to more than 120 countries, in your language and your currency, with duties calculated before you check out.</p>
+                <p class="lead world-lead">From the mill in Como to a doorstep in Seoul, Toronto or Lagos — POST ships to more than 120 countries, in your language and your currency, with duties calculated before you check out.</p>
                 <div class="lang-chips">
                     <span>EN</span><span>FR</span><span>ES</span><span>DE</span><span>日本語</span><span>العربية</span><span>+ 14 more</span>
                 </div>
@@ -316,7 +329,7 @@
         <div class="container">
             <span class="eyebrow">Join the house</span>
             <h2 class="h-section">First stories, first access</h2>
-            <p class="lead" style="margin-inline:auto">Be the first to read new origin stories, see new collections, and receive a little something for your first order — wherever you are in the world.</p>
+            <p class="lead newsletter-lead">Be the first to read new origin stories, see new collections, and receive a little something for your first order — wherever you are in the world.</p>
             <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed ✓';">
                 <input type="email" placeholder="Your email address" required aria-label="Email address">
                 <button class="btn btn--rose" type="submit">Subscribe</button>
