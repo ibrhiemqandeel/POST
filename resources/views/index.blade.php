@@ -233,7 +233,7 @@
                 <a class="prod-card" href="{{ url('/products/'.$product->id) }}">
                     {{-- عرض صورة المنتج الفعلية من قاعدة البيانات، أو خلفية تدرج افتراضية إذا لم تتوفر صورة --}}
                     <div class="prod-card__img"
-                         style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};">
+                        style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};">'
                         @if(!empty($product->tag))
                             <span class="tag">{{ $product->tag }}</span>
                         @endif
@@ -253,8 +253,8 @@
             @endforelse
         </div>
 
-        {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة --}}
-        @if(method_exists($products, 'links'))
+        {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة (Paginator فقط، وليست array عادية) --}}
+        @if(is_object($products) && method_exists($products, 'links'))
             <div class="d-flex justify-content-center mt-4">
                 {{ $products->links() }}
             </div>
