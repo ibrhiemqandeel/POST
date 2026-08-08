@@ -230,7 +230,7 @@
         <div class="prod-grid reveal">
             @foreach($products as $p)
                 <div class="prod-card">
-                    <div class="prod-card__img" style="background: {{ $p['grad'] }}">
+                    <div class="prod-card__img" style="background: '{{ $p['grad'] }};' ">
                         @if($p['tag'])
                             <span class="tag">{{ $p['tag'] }}</span>
                         @endif

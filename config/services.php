@@ -41,6 +41,10 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI', 'https://post-z44n.onrender.com/auth/google/callback'),
 ],
 
-  
+    'cj' => [
+        'email'   => env('CJ_EMAIL'),
+        'api_key' => env('CJ_API_KEY'),
+    ],  
+
 
 ];
