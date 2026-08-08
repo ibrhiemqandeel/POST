@@ -230,20 +230,29 @@
 
         <div class="prod-grid reveal">
             @forelse($products as $product)
-                <a class="prod-card" href="{{ url('/products/'.$product->id) }}">
-                    {{-- عرض صورة المنتج الفعلية من قاعدة البيانات، أو خلفية تدرج افتراضية إذا لم تتوفر صورة --}}
+                @php
+                    $isArr    = is_array($product);
+                    $id       = $isArr ? ($product['pid'] ?? $product['id'] ?? '') : $product->id;
+                    $name     = $isArr ? ($product['productNameEn'] ?? $product['productName'] ?? $product['name'] ?? 'Product') : $product->name;
+                    $img      = $isArr ? ($product['productImage'] ?? $product['image'] ?? '') : $product->image;
+                    $price    = $isArr ? ($product['sellPrice'] ?? $product['price'] ?? 0) : $product->price;
+                    $category = $isArr ? ($product['categoryName'] ?? 'General') : ($product->category?->name ?? $product->category ?? 'General');
+                    $tag      = $isArr ? ($product['tag'] ?? '') : ($product->tag ?? '');
+                @endphp
+
+                <a class="prod-card" href="{{ url('/products/'.$id) }}">
                     <div class="prod-card__img"
-                        style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};">'
-                        @if(!empty($product->tag))
-                            <span class="tag">{{ $product->tag }}</span>
+                        style="background: {{ !empty($img) ? "url('".e($img)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};">
+                        @if(!empty($tag))
+                            <span class="tag">{{ $tag }}</span>
                         @endif
                     </div>
 
-                    <div class="prod-card__name">{{ $product->name }}</div>
+                    <div class="prod-card__name">{{ $name }}</div>
 
                     <div class="prod-card__meta">
-                        <span>{{ $product->category?->name ?? $product->category ?? 'General' }}</span>
-                        <span class="prod-card__price">${{ number_format($product->price, 2) }}</span>
+                        <span>{{ $category }}</span>
+                        <span class="prod-card__price">${{ number_format((float)$price, 2) }}</span>
                     </div>
                 </a>
             @empty
@@ -253,7 +262,6 @@
             @endforelse
         </div>
 
-        {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة (Paginator فقط، وليست array عادية) --}}
         @if(is_object($products) && method_exists($products, 'links'))
             <div class="d-flex justify-content-center mt-4">
                 {{ $products->links() }}
