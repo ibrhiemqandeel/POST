@@ -6,18 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class FrontController extends Controller
 {
     public function index()
     {
-        // جلب المنتجات وتخزينها في الكاش لمدة 3600 ثانية (ساعة)
+        // 1. جلب المنتجات من الكاش
         $products = Cache::remember('home_api_products', 3600, function () {
             try {
+                $cjToken = config('services.cj.token', env('CJ_ACCESS_TOKEN'));
+
                 // طلب البيانات من CJ Dropshipping API
                 $response = Http::withHeaders([
-                    'CJ-Access-Token' => config('services.cj.token', env('CJ_ACCESS_TOKEN')),
-                ])->timeout(8)->get('https://developers.cjdropshipping.com/api2.0/v1/product/list', [
+                    'CJ-Access-Token' => $cjToken,
+                ])->timeout(10)->get('https://developers.cjdropshipping.com/api2.0/v1/product/list', [
                     'pageNum'  => 1,
                     'pageSize' => 12,
                 ]);
@@ -25,18 +28,63 @@ class FrontController extends Controller
                 if ($response->successful()) {
                     $responseData = $response->json();
 
-                    // CJ يرجع المنتجات داخل ['data']['list']
+                    // التحقق من استجابة CJ (تأكد من أن code يُرجع 200 أو المكون data ليس فارغاً)
                     if (isset($responseData['data']['list']) && !empty($responseData['data']['list'])) {
                         return $responseData['data']['list'];
                     }
                 }
             } catch (\Exception $e) {
-                // تسجيل الخطأ أو تجنب توقف الموقع في حال حدوث مشكلة شبكة
+                Log::error('CJ API Error: ' . $e->getMessage());
             }
 
-            // Fallback: جلب البيانات من قاعدة البيانات المحلية في حال فشل الـ API
-            return Product::latest()->take(12)->get()->toArray();
+            // Fallback 1: جلب البيانات من قاعدة البيانات المحلية
+            $localProducts = Product::latest()->take(12)->get()->toArray();
+
+            if (!empty($localProducts)) {
+                return $localProducts;
+            }
+
+            // Fallback 2: بيانات افتراضية مؤقتة في حال كانت قاعدة البيانات والـ API فارغين
+            return [
+                [
+                    'pid' => '1',
+                    'productNameEn' => 'Silk Linen Tailored Dress',
+                    'productImage' => '',
+                    'sellPrice' => 180.00,
+                    'categoryName' => 'Women',
+                    'tag' => 'NEW'
+                ],
+                [
+                    'pid' => '2',
+                    'productNameEn' => 'Cotton Ribbed Kids Sweater',
+                    'productImage' => '',
+                    'sellPrice' => 65.00,
+                    'categoryName' => 'Children',
+                    'tag' => 'BESTSELLER'
+                ],
+                [
+                    'pid' => '3',
+                    'productNameEn' => 'Hydrating Botanical Facial Oil',
+                    'productImage' => '',
+                    'sellPrice' => 42.00,
+                    'categoryName' => 'Beauty',
+                    'tag' => 'ORGANIC'
+                ],
+                [
+                    'pid' => '4',
+                    'productNameEn' => 'Handcrafted Leather Crossbody',
+                    'productImage' => '',
+                    'sellPrice' => 210.00,
+                    'categoryName' => 'Accessories',
+                    'tag' => 'LIMITED'
+                ]
+            ];
         });
+
+        // 2. إذا عادت النتيجة فارغة لأي سبب، قم بحذف الكاش فوراً لإعادة المحاولة في الطلب القادم
+        if (empty($products)) {
+            Cache::forget('home_api_products');
+        }
 
         return view('index', [
             'title'       => 'Index | POST',
