@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\CjService;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class CjProductController extends Controller
 {
@@ -19,7 +18,7 @@ class CjProductController extends Controller
     }
 
     /**
-     * جلب قائمة المنتجات من CJ مع إمكانية التصفح (Pagination)
+     * جلب المنتجات من CJ
      */
     public function index(Request $request): JsonResponse
     {
@@ -31,81 +30,62 @@ class CjProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $products,
+                'data'    => $products,
             ], 200);
 
-        } catch (Throwable $e) {
-            Log::error('CJ getProducts failed', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'فشل في جلب المنتجات من CJ Dropshipping',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * استيراد منتج معين بناءً على PID وتخزينه/تحديثه في قاعدة بيانات متجرك
+     * استيراد منتج وحفظه في قاعدة البيانات
      */
     public function importProduct(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'pid' => 'required|string',
         ]);
 
         try {
-            // 1. جلب تفاصيل المنتج من خدمة CJ
-            $cjData = $this->cjService->getProductDetail($validated['pid']);
+            $cjData = $this->cjService->getProductDetail($request->pid);
 
             if (empty($cjData['result']) || empty($cjData['data'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'المنتج غير موجود في CJ Dropshipping',
+                    'message' => 'المنتج غير موجود في CJ Dropshipping'
                 ], 404);
             }
 
             $item = $cjData['data'];
 
-            // تحقق من وجود الحقول الأساسية قبل الحفظ
-            if (empty($item['productSku']) || empty($item['productNameEn'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'بيانات المنتج غير مكتملة من CJ Dropshipping',
-                ], 422);
-            }
-
-            // 2. حفظ المنتج في جدول المنتجات بالموقع
             $product = Product::updateOrCreate(
                 ['sku' => $item['productSku']],
                 [
                     'name'        => $item['productNameEn'],
                     'description' => $item['description'] ?? '',
-                    'price'       => (float) ($item['sellPrice'] ?? 0),
-                    'image'       => $item['productImage'] ?? null,
-                    'stock'       => $item['inventoryNum'] ?? 10, // كان خطأ: يستخدم packingWeight بدل المخزون الفعلي
-                    'cj_pid'      => $item['pid'] ?? $validated['pid'],
+                    'price'       => $item['sellPrice'],
+                    'image'       => $item['productImage'],
+                    'stock'       => $item['packingWeight'] ?? 10,
+                    'cj_pid'      => $item['pid'],
                 ]
             );
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم استيراد المنتج بنجاح إلى قاعدة البيانات!',
-                'product' => $product,
+                'product' => $product
             ], 200);
 
-        } catch (Throwable $e) {
-            Log::error('CJ importProduct failed', [
-                'pid'     => $validated['pid'] ?? null,
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء استيراد المنتج',
+                'error'   => $e->getMessage()
             ], 500);
         }
     }

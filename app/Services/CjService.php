@@ -10,7 +10,7 @@ class CjService
     protected string $baseUrl = 'https://developers.cjdropshipping.com/api2.0/v1';
 
     /**
-     * الحصول على الـ Access Token وتخزينه موقتاً لتقليل عدد الطلبات
+     * الحصول على Access Token وتخزينه في الكاش لتقليل عدد الطلبات
      */
     public function getAccessToken()
     {
@@ -24,7 +24,7 @@ class CjService
                 return $response->json()['data']['accessToken'];
             }
 
-            throw new \Exception('Failed to retrieve CJ Access Token: ' . $response->body());
+            throw new \Exception('فشل في جلب Access Token من CJ Dropshipping: ' . $response->body());
         });
     }
 
@@ -46,18 +46,18 @@ class CjService
     }
 
     /**
- * جلب تفاصيل منتج معين باستخدام الـ PID الخاص به من CJ
- */
-public function getProductDetail(string $pid)
-{
-    $token = $this->getAccessToken();
+     * جلب تفاصيل منتج معين عبر الـ PID
+     */
+    public function getProductDetail(string $pid)
+    {
+        $token = $this->getAccessToken();
 
-    $response = Http::withHeaders([
-        'CJ-Access-Token' => $token,
-    ])->get("{$this->baseUrl}/product/query", [
-        'pid' => $pid,
-    ]);
+        $response = Http::withHeaders([
+            'CJ-Access-Token' => $token,
+        ])->get("{$this->baseUrl}/product/query", [
+            'pid' => $pid,
+        ]);
 
-    return $response->json();
-}
+        return $response->json();
+    }
 }
