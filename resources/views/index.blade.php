@@ -1,7 +1,6 @@
 <x-muster>
     <x-slot name="title">POST — Stories worth wearing</x-slot>
     <x-slot name="description">Considered clothing, beauty and accessories for women and children — each piece chosen for the story it begins, not just the season it fills. Shipped from New York to wherever you call home.</x-slot>
-    <x-slot name="image">/images/hero.jpg</x-slot>
     <x-slot name="url">{{ url()->current() }}</x-slot>
 
     <style>
@@ -93,7 +92,7 @@
         .prod-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem 1.2rem; }
         @media (max-width: 900px) { .prod-grid { grid-template-columns: repeat(2, 1fr); } }
         .prod-card { cursor: pointer; }
-        .prod-card__img { aspect-ratio: 3/4; border-radius: 10px; overflow: hidden; position: relative; margin-bottom: .85rem; }
+        .prod-card__img { aspect-ratio: 3/4; border-radius: 10px; overflow: hidden; position: relative; margin-bottom: .85rem; background-size: cover; background-position: center; }
         .prod-card__img span.tag { position: absolute; top: .7rem; left: .7rem; background: var(--white); color: var(--rose-deep); font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .3rem .6rem; border-radius: 999px; }
         .prod-card__name { font-family: 'Fraunces', serif; font-size: 1.02rem; margin-bottom: .15rem; }
         .prod-card__meta { display: flex; justify-content: space-between; font-size: .86rem; color: var(--ink-soft); }
@@ -206,19 +205,6 @@
     </section>
 
     <!-- FEATURED PRODUCTS -->
-    @php
-        $products = [
-            ['name' => 'Como Silk Wrap Dress', 'cat' => 'Women · Dresses', 'price' => '$248', 'tag' => 'New', 'grad' => 'linear-gradient(150deg,#E6B6A2,#B0715C)'],
-            ['name' => 'Linen Field Shirt', 'cat' => 'Women · Tops', 'price' => '$128', 'tag' => null, 'grad' => 'linear-gradient(150deg,#C9967E,#5A3A30)'],
-            ['name' => 'Little Traveller Romper', 'cat' => 'Children · 0–3y', 'price' => '$78', 'tag' => 'New', 'grad' => 'linear-gradient(150deg,#E9C7BA,#8C4E38)'],
-            ['name' => 'Terracotta Tinted Balm', 'cat' => 'Beauty · Lips', 'price' => '$34', 'tag' => null, 'grad' => 'linear-gradient(150deg,#BBA189,#7E6E5C)'],
-            ['name' => 'Como Wool Coat', 'cat' => 'Women · Outerwear', 'price' => '$398', 'tag' => null, 'grad' => 'linear-gradient(150deg,#A8634F,#5A3A30)'],
-            ['name' => 'Woven Straw Tote', 'cat' => 'Accessories · Bags', 'price' => '$96', 'tag' => 'New', 'grad' => 'linear-gradient(150deg,#E6B6A2,#C9967E)'],
-            ['name' => 'Kids Organic Cotton Set', 'cat' => 'Children · 2–6y', 'price' => '$58', 'tag' => null, 'grad' => 'linear-gradient(150deg,#E9C7BA,#B0715C)'],
-            ['name' => 'Rose Clay Face Oil', 'cat' => 'Beauty · Skin', 'price' => '$52', 'tag' => null, 'grad' => 'linear-gradient(150deg,#C08B73,#5A3A30)'],
-        ];
-    @endphp
-
     <section class="section--tight container">
         <div class="sec-head">
             <div class="reveal">
@@ -227,22 +213,37 @@
             </div>
             <a class="link-underline muted reveal" data-d="1" href="#">See more</a>
         </div>
+
         <div class="prod-grid reveal">
-            @foreach($products as $p)
+            @forelse($products as $product)
                 <div class="prod-card">
-                    <div class="prod-card__img" style="background: '{{ $p['grad'] }};' ">
-                        @if($p['tag'])
-                            <span class="tag">{{ $p['tag'] }}</span>
+                    {{-- عرض صورة المنتج أو خلفية التدرج الافتراضية إذا لم تتوفر صورة --}}
+                    <div class="prod-card__img" style="background: '{{ $product->image ? 'url('.$product->image.') center/cover' : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};'>
+                        @if($product->tag ?? false)
+                            <span class="tag">{{ $product->tag }}</span>
                         @endif
                     </div>
-                    <div class="prod-card__name">{{ $p['name'] }}</div>
+
+                    <div class="prod-card__name">{{ $product->name }}</div>
+
                     <div class="prod-card__meta">
-                        <span>{{ $p['cat'] }}</span>
-                        <span class="prod-card__price">{{ $p['price'] }}</span>
+                        <span>{{ $product->category->name ?? $product->category ?? 'General' }}</span>
+                        <span class="prod-card__price">${{ number_format($product->price, 2) }}</span>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-12 text-center py-4">
+                    <p class="muted">لا توجد منتجات متاحة حالياً.</p>
+                </div>
+            @endforelse
         </div>
+
+        {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة --}}
+        @if(method_exists($products, 'links'))
+            <div class="d-flex justify-content-center mt-4">
+                {{ $products->links() }}
+            </div>
+        @endif
     </section>
 
     <!-- EDITORIAL SPLIT -->

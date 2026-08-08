@@ -20,6 +20,7 @@ class CjProductController extends Controller
     /**
      * جلب قائمة المنتجات من CJ Dropshipping
      */
+    
     public function index(Request $request): JsonResponse
     {
         try {
