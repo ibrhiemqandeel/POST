@@ -3,15 +3,41 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product; // 1. استدعاء الموديل
+use App\Models\Product;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class FrontController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->paginate(12);
+        // جلب المنتجات وتخزينها في الكاش لمدة 3600 ثانية (ساعة)
+        $products = Cache::remember('home_api_products', 3600, function () {
+            try {
+                // طلب البيانات من CJ Dropshipping API
+                $response = Http::withHeaders([
+                    'CJ-Access-Token' => config('services.cj.token', env('CJ_ACCESS_TOKEN')),
+                ])->timeout(8)->get('https://developers.cjdropshipping.com/api2.0/v1/product/list', [
+                    'pageNum'  => 1,
+                    'pageSize' => 12,
+                ]);
 
-        // 2. إرجاع العرض وتمرير المنتجات مع العناوين بشكل صحيح
+                if ($response->successful()) {
+                    $responseData = $response->json();
+
+                    // CJ يرجع المنتجات داخل ['data']['list']
+                    if (isset($responseData['data']['list']) && !empty($responseData['data']['list'])) {
+                        return $responseData['data']['list'];
+                    }
+                }
+            } catch (\Exception $e) {
+                // تسجيل الخطأ أو تجنب توقف الموقع في حال حدوث مشكلة شبكة
+            }
+
+            // Fallback: جلب البيانات من قاعدة البيانات المحلية في حال فشل الـ API
+            return Product::latest()->take(12)->get()->toArray();
+        });
+
         return view('index', [
             'title'       => 'Index | POST',
             'description' => 'Discover Index, A world that combines a mother\'s elegance with her child\'s happiness.',
