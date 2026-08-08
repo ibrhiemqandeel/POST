@@ -10,15 +10,33 @@ class CjService
     protected string $baseUrl = 'https://developers.cjdropshipping.com/api2.0/v1';
 
     /**
-     * جلب Access Token
+     * جلب الخيارات المخصصة لطلبات HTTP (مثل Proxy و Timeout)
+     */
+    protected function getHttpOptions(): array
+    {
+        $options = [
+            'timeout' => 15,
+        ];
+
+        // في حال تم ضبط عنوان بروكسي في ملف .env سيتم استخدامه تلقائياً
+        if (env('CJ_PROXY')) {
+            $options['proxy'] = env('CJ_PROXY');
+        }
+
+        return $options;
+    }
+
+    /**
+     * جلب Access Token وتخزينه في الكاش
      */
     public function getAccessToken()
     {
         return Cache::remember('cj_access_token', 8000, function () {
-            $response = Http::post("{$this->baseUrl}/authentication/getAccessToken", [
-                'email'  => config('services.cj.email'),
-                'apiKey' => config('services.cj.api_key'),
-            ]);
+            $response = Http::withOptions($this->getHttpOptions())
+                ->post("{$this->baseUrl}/authentication/getAccessToken", [
+                    'email'  => config('services.cj.email'),
+                    'apiKey' => config('services.cj.api_key'),
+                ]);
 
             $data = $response->json();
 
@@ -31,7 +49,7 @@ class CjService
     }
 
     /**
-     * جلب المنتجات باستخدام Proxy تجنباً لـ Rate Limit الخاص بـ IP السيرفر
+     * جلب قائمة المنتجات عبر البروكسي وتخزين الاستجابات الناجحة فقط
      */
     public function getProducts(int $pageNum = 1, int $pageSize = 20)
     {
@@ -43,22 +61,48 @@ class CjService
 
         $token = $this->getAccessToken();
 
-        // إرسال الطلب عبر Proxy لتغيير الـ IP الخارج من Render
         $response = Http::withHeaders([
             'CJ-Access-Token' => $token,
-        ])->withOptions([
-            // يمكن الاستعانة بأي البروكسيات المجانية المتاحة مثل ScraperAPI أو Fixie
-            // 'proxy' => 'http://proxy-address:port',
-            'timeout' => 15,
-        ])->get("{$this->baseUrl}/product/list", [
-            'pageNum'  => $pageNum,
-            'pageSize' => $pageSize,
-        ]);
+        ])->withOptions($this->getHttpOptions())
+          ->get("{$this->baseUrl}/product/list", [
+              'pageNum'  => $pageNum,
+              'pageSize' => $pageSize,
+          ]);
+
+        $data = $response->json();
+
+        // تخزين النتيجة في الكاش فقط إذا كان الطلب ناجحاً من CJ
+        if (isset($data['result']) && $data['result'] === true) {
+            Cache::put($cacheKey, $data, 3600);
+        }
+
+        return $data;
+    }
+
+    /**
+     * جلب تفاصيل منتج معين عبر الـ PID
+     */
+    public function getProductDetail(string $pid)
+    {
+        $cacheKey = "cj_product_detail_{$pid}";
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'CJ-Access-Token' => $token,
+        ])->withOptions($this->getHttpOptions())
+          ->get("{$this->baseUrl}/product/query", [
+              'pid' => $pid,
+          ]);
 
         $data = $response->json();
 
         if (isset($data['result']) && $data['result'] === true) {
-            Cache::put($cacheKey, $data, 3600);
+            Cache::put($cacheKey, $data, 86400);
         }
 
         return $data;

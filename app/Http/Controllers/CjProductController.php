@@ -18,7 +18,7 @@ class CjProductController extends Controller
     }
 
     /**
-     * جلب المنتجات من CJ
+     * جلب قائمة المنتجات من CJ Dropshipping
      */
     public function index(Request $request): JsonResponse
     {
@@ -27,6 +27,15 @@ class CjProductController extends Controller
             $pageSize = min(100, max(1, (int) $request->query('page_size', 20)));
 
             $products = $this->cjService->getProducts($page, $pageSize);
+
+            // التحقق مما إذا كانت الاستجابة تحتوي على خطأ من CJ (مثل Rate Limit)
+            if (isset($products['result']) && $products['result'] === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $products['message'] ?? 'حدث خطأ أثناء التواصل مع CJ Dropshipping',
+                    'data'    => $products
+                ], 429);
+            }
 
             return response()->json([
                 'success' => true,
@@ -43,7 +52,7 @@ class CjProductController extends Controller
     }
 
     /**
-     * استيراد منتج وحفظه في قاعدة البيانات
+     * استيراد منتج معين وحفظه أو تحديثه في قاعدة البيانات
      */
     public function importProduct(Request $request): JsonResponse
     {
@@ -57,21 +66,24 @@ class CjProductController extends Controller
             if (empty($cjData['result']) || empty($cjData['data'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'المنتج غير موجود في CJ Dropshipping'
+                    'message' => $cjData['message'] ?? 'المنتج غير موجود في CJ Dropshipping'
                 ], 404);
             }
 
             $item = $cjData['data'];
 
+            // قراءة السكيو أو التوليد التلقائي في حال عدم وجوده
+            $sku = $item['productSku'] ?? $item['sku'] ?? ('CJ-' . ($item['pid'] ?? time()));
+
             $product = Product::updateOrCreate(
-                ['sku' => $item['productSku']],
+                ['sku' => $sku],
                 [
-                    'name'        => $item['productNameEn'],
+                    'name'        => $item['productNameEn'] ?? $item['productName'] ?? 'منتج جديد',
                     'description' => $item['description'] ?? '',
-                    'price'       => $item['sellPrice'],
-                    'image'       => $item['productImage'],
+                    'price'       => $item['sellPrice'] ?? $item['productPrice'] ?? 0,
+                    'image'       => $item['productImage'] ?? '',
                     'stock'       => $item['packingWeight'] ?? 10,
-                    'cj_pid'      => $item['pid'],
+                    'cj_pid'      => $item['pid'] ?? $request->pid,
                 ]
             );
 
