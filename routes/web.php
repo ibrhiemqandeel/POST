@@ -6,6 +6,7 @@ use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\CjProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,4 +71,8 @@ Route::get('/run-setup', function () {
         'message' => 'تم مسح الكاش وتشغيل الميجريشن بنجاح!'
     ]);
 });
+
+// مسارات CJ Dropshipping مباشرة
+Route::get('/cj/products', [CjProductController::class, 'index']);
+Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);
 
