@@ -10,7 +10,7 @@ class CjService
     protected string $baseUrl = 'https://developers.cjdropshipping.com/api2.0/v1';
 
     /**
-     * الحصول على Access Token وتخزينه في الكاش لتقليل عدد الطلبات
+     * جلب Access Token وتخزينه في الكاش
      */
     public function getAccessToken()
     {
@@ -20,48 +20,72 @@ class CjService
                 'apiKey' => config('services.cj.api_key'),
             ]);
 
-            if ($response->successful() && isset($response->json()['data']['accessToken'])) {
-                return $response->json()['data']['accessToken'];
+            $data = $response->json();
+
+            if ($response->successful() && isset($data['data']['accessToken'])) {
+                return $data['data']['accessToken'];
             }
 
-            throw new \Exception('فشل في جلب Access Token من CJ Dropshipping: ' . $response->body());
+            throw new \Exception('فشل جلب التوكن من CJ: ' . ($data['message'] ?? $response->body()));
         });
     }
 
     /**
-     * جلب قائمة المنتجات مع تخزين النتائج في الكاش لمدة ساعة (3600 ثانية)
+     * جلب قائمة المنتجات (حفظ النجاح فقط في الكاش)
      */
     public function getProducts(int $pageNum = 1, int $pageSize = 20)
     {
-        return Cache::remember("cj_products_{$pageNum}_{$pageSize}", 3600, function () use ($pageNum, $pageSize) {
-            $token = $this->getAccessToken();
+        $cacheKey = "cj_products_{$pageNum}_{$pageSize}";
 
-            $response = Http::withHeaders([
-                'CJ-Access-Token' => $token,
-            ])->get("{$this->baseUrl}/product/list", [
-                'pageNum'  => $pageNum,
-                'pageSize' => $pageSize,
-            ]);
+        // إذا كانت البيانات موجودة في الكاش سابقاً، ارجع بها
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
 
-            return $response->json();
-        });
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'CJ-Access-Token' => $token,
+        ])->get("{$this->baseUrl}/product/list", [
+            'pageNum'  => $pageNum,
+            'pageSize' => $pageSize,
+        ]);
+
+        $data = $response->json();
+
+        // تخزين النتيجة في الكاش فقط إذا كان الطلب ناجحاً
+        if (isset($data['result']) && $data['result'] === true) {
+            Cache::put($cacheKey, $data, 3600); // 1 hour
+        }
+
+        return $data;
     }
 
     /**
-     * جلب تفاصيل منتج معين عبر الـ PID مع تخزينها في الكاش لمدة 24 ساعة
+     * جلب تفاصيل منتج معين (حفظ النجاح فقط)
      */
     public function getProductDetail(string $pid)
     {
-        return Cache::remember("cj_product_detail_{$pid}", 86400, function () use ($pid) {
-            $token = $this->getAccessToken();
+        $cacheKey = "cj_product_detail_{$pid}";
 
-            $response = Http::withHeaders([
-                'CJ-Access-Token' => $token,
-            ])->get("{$this->baseUrl}/product/query", [
-                'pid' => $pid,
-            ]);
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
 
-            return $response->json();
-        });
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'CJ-Access-Token' => $token,
+        ])->get("{$this->baseUrl}/product/query", [
+            'pid' => $pid,
+        ]);
+
+        $data = $response->json();
+
+        if (isset($data['result']) && $data['result'] === true) {
+            Cache::put($cacheKey, $data, 86400); // 24 hours
+        }
+
+        return $data;
     }
 }
