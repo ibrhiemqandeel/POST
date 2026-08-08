@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->string('image')->nullable();
+            $table->integer('stock')->default(0);
+            $table->string('sku')->unique();
+            $table->string('cj_pid')->nullable()->index(); // معرف المنتج لدى CJ
             $table->timestamps();
         });
     }
