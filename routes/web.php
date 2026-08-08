@@ -61,3 +61,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::get('/cj/products', [CjProductController::class, 'index']);
+Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);

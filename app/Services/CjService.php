@@ -44,4 +44,20 @@ class CjService
 
         return $response->json();
     }
+
+    /**
+ * جلب تفاصيل منتج معين باستخدام الـ PID الخاص به من CJ
+ */
+public function getProductDetail(string $pid)
+{
+    $token = $this->getAccessToken();
+
+    $response = Http::withHeaders([
+        'CJ-Access-Token' => $token,
+    ])->get("{$this->baseUrl}/product/query", [
+        'pid' => $pid,
+    ]);
+
+    return $response->json();
+}
 }
