@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\DashboardController; // <--- تعديل مسار الاستدعاء
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\CjProductController;
 
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); // <--- استخدام الكلاس المحدث
 });
 
 Route::get('/run-setup', function () {
@@ -75,4 +75,3 @@ Route::get('/run-setup', function () {
 // مسارات CJ Dropshipping مباشرة
 Route::get('/cj/products', [CjProductController::class, 'index']);
 Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);
-

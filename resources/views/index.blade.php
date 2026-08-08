@@ -101,6 +101,7 @@
         .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
         @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
         .split__media { aspect-ratio: 5/4; border-radius: var(--radius); overflow: hidden; }
+        .split__media--art { background: linear-gradient(155deg, #5a3a30, #9E5F4D 60%, #C08B73); display: grid; place-items: center; color: #f4dccf; }
 
         .values-strip { background: var(--cream-2); border-block: 1px solid var(--line); }
         .values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
@@ -216,10 +217,11 @@
 
         <div class="prod-grid reveal">
             @forelse($products as $product)
-                <div class="prod-card">
-                    {{-- عرض صورة المنتج أو خلفية التدرج الافتراضية إذا لم تتوفر صورة --}}
-                    <div class="prod-card__img" style="background: '{{ $product->image ? 'url('.$product->image.') center/cover' : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};'>
-                        @if($product->tag ?? false)
+                <a class="prod-card" href="{{ url('/products/'.$product->id) }}">
+                    {{-- عرض صورة المنتج الفعلية من قاعدة البيانات، أو خلفية تدرج افتراضية إذا لم تتوفر صورة --}}
+                    <div class="prod-card__img"
+                         style="background: '{{ $product->image ? "url('".e($product->image)."') center/cover" : 'linear-gradient(150deg,#E6B6A2,#B0715C)' }};'>
+                        @if(!empty($product->tag))
                             <span class="tag">{{ $product->tag }}</span>
                         @endif
                     </div>
@@ -227,10 +229,10 @@
                     <div class="prod-card__name">{{ $product->name }}</div>
 
                     <div class="prod-card__meta">
-                        <span>{{ $product->category->name ?? $product->category ?? 'General' }}</span>
+                        <span>{{ $product->category?->name ?? $product->category ?? 'General' }}</span>
                         <span class="prod-card__price">${{ number_format($product->price, 2) }}</span>
                     </div>
-                </div>
+                </a>
             @empty
                 <div class="col-12 text-center py-4">
                     <p class="muted">لا توجد منتجات متاحة حالياً.</p>
@@ -239,7 +241,7 @@
         </div>
 
         {{-- إمكانية الترقيم Pagination إذا كانت البيانات مقسمة --}}
-        @if(method_exists($products, 'links'))
+        @if((method_exists($products, 'links')) && $products->hasPages())
             <div class="d-flex justify-content-center mt-4">
                 {{ $products->links() }}
             </div>
@@ -249,7 +251,7 @@
     <!-- EDITORIAL SPLIT -->
     <section class="section container">
         <div class="split reveal">
-            <div class="split__media" style="background:linear-gradient(155deg,#5a3a30,#9E5F4D 60%,#C08B73);display:grid;place-items:center;color:#f4dccf">
+            <div class="split__media split__media--art">
                 <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="width:42%;opacity:.9" aria-hidden="true">
                     <rect x="36" y="40" width="28" height="38" rx="6" />
                     <rect x="44" y="27" width="12" height="13" rx="2" />
