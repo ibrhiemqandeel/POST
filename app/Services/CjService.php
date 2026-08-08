@@ -29,35 +29,39 @@ class CjService
     }
 
     /**
-     * جلب قائمة المنتجات من CJ
+     * جلب قائمة المنتجات مع تخزين النتائج في الكاش لمدة ساعة (3600 ثانية)
      */
     public function getProducts(int $pageNum = 1, int $pageSize = 20)
     {
-        $token = $this->getAccessToken();
+        return Cache::remember("cj_products_{$pageNum}_{$pageSize}", 3600, function () use ($pageNum, $pageSize) {
+            $token = $this->getAccessToken();
 
-        $response = Http::withHeaders([
-            'CJ-Access-Token' => $token,
-        ])->get("{$this->baseUrl}/product/list", [
-            'pageNum'  => $pageNum,
-            'pageSize' => $pageSize,
-        ]);
+            $response = Http::withHeaders([
+                'CJ-Access-Token' => $token,
+            ])->get("{$this->baseUrl}/product/list", [
+                'pageNum'  => $pageNum,
+                'pageSize' => $pageSize,
+            ]);
 
-        return $response->json();
+            return $response->json();
+        });
     }
 
     /**
-     * جلب تفاصيل منتج معين عبر الـ PID
+     * جلب تفاصيل منتج معين عبر الـ PID مع تخزينها في الكاش لمدة 24 ساعة
      */
     public function getProductDetail(string $pid)
     {
-        $token = $this->getAccessToken();
+        return Cache::remember("cj_product_detail_{$pid}", 86400, function () use ($pid) {
+            $token = $this->getAccessToken();
 
-        $response = Http::withHeaders([
-            'CJ-Access-Token' => $token,
-        ])->get("{$this->baseUrl}/product/query", [
-            'pid' => $pid,
-        ]);
+            $response = Http::withHeaders([
+                'CJ-Access-Token' => $token,
+            ])->get("{$this->baseUrl}/product/query", [
+                'pid' => $pid,
+            ]);
 
-        return $response->json();
+            return $response->json();
+        });
     }
 }
