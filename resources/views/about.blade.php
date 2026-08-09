@@ -2,7 +2,7 @@
 
     <section class="page-hero">
         <div class="container">
-            <div class="crumb"><a href="index.html">Home</a><span>/</span>Our Story</div>
+            <div class="crumb"><a href="{{ url('/') }}">Home</a><span>/</span>Our Story</div>
             <span class="eyebrow">Our name, our promise</span>
             <h1 style="margin-top:.7rem">Premium Origin<br>Stories &amp; Thoughts</h1>
             <p>Four letters, one belief: that knowing where something began — the mill, the maker, the hands — is part of the pleasure of owning it well.</p>

@@ -349,25 +349,40 @@ function mountGrids() {
     });
 }
 
-/* ---------- Cart State Management ---------- */
+/* =================================================================
+   Cart — متصل الآن فعلياً بالسيرفر (Laravel: /cart/add) بدل الاعتماد
+   الكامل على localStorage فقط. راجع App\Http\Controllers\CartController.
+   ================================================================= */
 const Cart = {
-    get() {
-        return JSON.parse(localStorage.getItem("post_cart") || "[]");
+    /**
+     * إضافة منتج حقيقي (له id رقمي من قاعدة البيانات) إلى السلة عبر السيرفر.
+     */
+    addToServer(productId, quantity = 1) {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "";
+
+        return fetch("/cart/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": csrf
+            },
+            body: JSON.stringify({ product_id: productId, quantity })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) Cart.setBadge(data.count);
+                return data;
+            })
+            .catch(() => null);
     },
-    set(items) {
-        localStorage.setItem("post_cart", JSON.stringify(items));
-        Cart.updateBadge();
-    },
-    add(id) {
-        const items = Cart.get();
-        const existing = items.find(i => i.id === id);
-        if (existing) existing.qty += 1;
-        else items.push({ id, qty: 1 });
-        Cart.set(items);
+    setBadge(count) {
+        $$(".bag-count, .cart-badge").forEach(el => el.textContent = count);
     },
     updateBadge() {
-        const total = Cart.get().reduce((sum, item) => sum + item.qty, 0);
-        $$(".bag-count").forEach(el => el.textContent = total);
+        // العدد الحقيقي يصل جاهزاً من السيرفر عبر window.cartCount
+        // (انظر resources/views/components/muster.blade.php)
+        if (typeof window.cartCount !== "undefined") Cart.setBadge(window.cartCount);
     }
 };
 
@@ -380,7 +395,10 @@ function initEvents() {
         const addBtn = e.target.closest(".js-add");
         if (addBtn) {
             const id = addBtn.dataset.id;
-            Cart.add(id);
+            // منتجات قاعدة البيانات الحقيقية لها id رقمي (راجع resources/views/product.blade.php)
+            if (id && /^\d+$/.test(id)) {
+                Cart.addToServer(id);
+            }
         }
 
         const favBtn = e.target.closest(".js-fav");
@@ -400,7 +418,3 @@ document.addEventListener("DOMContentLoaded", () => {
     initEvents();
     Cart.updateBadge();
 });
-
-
-   availableLocales: json($availableLocales);
-        availableCurrencies: json($availableCurrencies)

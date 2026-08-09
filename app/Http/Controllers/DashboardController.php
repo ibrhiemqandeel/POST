@@ -26,6 +26,9 @@ class DashboardController extends Controller
         // أحدث 5 الطلبات المسجلة
         $recentOrders = Order::with('user')->latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentOrders'));
+        // ملاحظة: الملف resources/views/dashboard.blade.php هو نفسه واجهة
+        // إدارة المنتجات المخصصة للأدمن (وليست صفحة "حسابي" للمستخدم العادي)،
+        // لذلك لوحة التحكم الإدارية تستخدمه مباشرة بدل إنشاء ملف مكرر.
+        return view('dashboard', compact('stats', 'recentOrders'));
     }
 }

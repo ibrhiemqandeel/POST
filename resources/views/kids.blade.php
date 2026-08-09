@@ -33,7 +33,9 @@
                 </div>
             </div>
 
-            <div class="prod-grid reveal" data-products data-filter="kids" data-count="#kidsCount"></div>
+            <div class="prod-grid reveal">
+                @include('partials.product-grid', ['products' => $products, 'countSelector' => '#kidsCount'])
+            </div>
 
             <div class="pagination">
                 <button class="active">1</button>

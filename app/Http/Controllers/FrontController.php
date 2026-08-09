@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Cart;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -101,11 +102,23 @@ class FrontController extends Controller
         ]);
     }
 
+    /**
+     * جلب منتجات فئة معينة عبر الـ slug (women / kids / beauty / accessories)
+     * من قاعدة البيانات الحقيقية بدل الاعتماد على مصفوفة منتجات ثابتة بالـ JS.
+     */
+    protected function productsByCategory(string $slug)
+    {
+        return Product::whereHas('category', fn ($q) => $q->where('slug', $slug))
+            ->latest()
+            ->get();
+    }
+
     public function accessories()
     {
         return view('accessories', [
             'title'       => 'Accessories | POST',
             'description' => 'Discover accessories, A world that combines a mother\'s elegance with her child\'s happiness.',
+            'products'    => $this->productsByCategory('accessories'),
         ]);
     }
 
@@ -114,14 +127,18 @@ class FrontController extends Controller
         return view('beauty', [
             'title'       => 'Beauty | POST',
             'description' => 'Discover beauty, A world that combines a mother\'s elegance with her child\'s happiness.',
+            'products'    => $this->productsByCategory('beauty'),
         ]);
     }
 
     public function cart()
     {
+        $cart = Cart::current()->load('items.product');
+
         return view('cart', [
             'title'       => 'Cart | POST',
             'description' => 'Discover cart, A world that combines a mother\'s elegance with her child\'s happiness.',
+            'cart'        => $cart,
         ]);
     }
 
@@ -130,6 +147,7 @@ class FrontController extends Controller
         return view('kids', [
             'title'       => 'Kids | POST',
             'description' => 'Discover kids, A world that combines a mother\'s elegance with her child\'s happiness.',
+            'products'    => $this->productsByCategory('kids'),
         ]);
     }
 
@@ -146,6 +164,7 @@ class FrontController extends Controller
         return view('women', [
             'title'       => 'Women | POST',
             'description' => 'Discover women, A world that combines a mother\'s elegance with her child\'s happiness.',
+            'products'    => $this->productsByCategory('women'),
         ]);
     }
 

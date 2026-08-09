@@ -1,8 +1,8 @@
-<x-muster title="Your Bag" description="Review your pieces below. Complimentary, carbon-neutral shipping on orders over $120.">
+<x-muster title="Beauty" description="Cruelty-free formulas, refillable where we can, and an origin you can trace. Colour and care that feel as considered as the rest of your wardrobe.">
     <main>
         <section class="page-hero">
             <div class="container">
-                <div class="crumb"><a href="index.html">Home</a><span>/</span>Beauty</div>
+                <div class="crumb"><a href="{{ url('/') }}">Home</a><span>/</span>Beauty</div>
                 <span class="eyebrow">Skin & Colour</span>
                 <h1 style="margin-top:.7rem">Beauty</h1>
                 <p>Cruelty-free formulas, refillable where we can, and an origin you can trace. Colour and care that feel as considered as the rest of your wardrobe.</p>
@@ -32,7 +32,9 @@
                 </div>
             </div>
 
-            <div class="prod-grid reveal" data-products data-filter="beauty" data-count="#beautyCount"></div>
+            <div class="prod-grid reveal">
+                @include('partials.product-grid', ['products' => $products, 'countSelector' => '#beautyCount'])
+            </div>
 
             <div class="pagination">
                 <button class="active">1</button>

@@ -476,10 +476,8 @@
     opacity:1;
   }
 </style>
-<mian>
-
 <div class="crumbtitle">
-  <div class="crumb"><a href="https://post-z44n.onrender.com/">Home</a> / Bag</div>
+  <div class="crumb"><a href="{{ url('/') }}">Home</a> / Bag</div>
   <h1 class="page-title">Your <em>bag.</em></h1>
   <p class="page-sub">Everything here still has its story to finish. Review your pieces before they begin their journey to you.</p>
 </div>
@@ -487,79 +485,38 @@
 <main class="cart-shell">
   <!-- ITEMS -->
   <section aria-label="Cart items">
-    <div class="list-head">
-      <span class="eyebrow">3 pieces</span>
+    <div class="list-head" @if($cart->items->isEmpty()) hidden @endif>
+      <span class="eyebrow">{{ $cart->count() }} {{ $cart->count() === 1 ? 'piece' : 'pieces' }}</span>
       <span class="eyebrow">Price</span>
     </div>
 
-    <div id="itemsList">
-      <article class="item" data-price="420" data-qty="1">
-        <span class="item-index">01</span>
-        <div class="swatch" style="--sw1:#8a4a2c; --sw2:#d8c3a8;" data-mono="W"></div>
-        <div class="item-info">
-          <div class="item-cat">Women — Outerwear</div>
-          <h3 class="item-name">Wool Column Coat</h3>
-          <div class="item-meta"><span>Stone</span><span>Size M</span><span>Made in Como</span></div>
-          <div class="qty-row">
-            <div class="qty">
-              <button type="button" class="qty-dec" aria-label="Decrease quantity">–</button>
-              <span class="qty-val">1</span>
-              <button type="button" class="qty-inc" aria-label="Increase quantity">+</button>
+    <div id="itemsList" @if($cart->items->isEmpty()) hidden @endif>
+      @foreach($cart->items as $item)
+        <article class="item" data-item-id="{{ $item->id }}" data-price="{{ $item->price }}" data-qty="{{ $item->quantity }}">
+          <span class="item-index">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+          <div class="swatch" style="--sw1:#8a4a2c; --sw2:#d8c3a8;" data-mono="{{ strtoupper(substr($item->product->name ?? 'P', 0, 1)) }}"></div>
+          <div class="item-info">
+            <div class="item-cat">{{ $item->product->category?->name ?? 'POST' }}</div>
+            <h3 class="item-name">{{ $item->product->name ?? 'Product' }}</h3>
+            <div class="item-meta"><span>SKU {{ $item->product->sku ?? '—' }}</span></div>
+            <div class="qty-row">
+              <div class="qty">
+                <button type="button" class="qty-dec" aria-label="Decrease quantity">–</button>
+                <span class="qty-val">{{ $item->quantity }}</span>
+                <button type="button" class="qty-inc" aria-label="Increase quantity">+</button>
+              </div>
+              <button type="button" class="remove-btn">Remove</button>
             </div>
-            <button type="button" class="remove-btn">Remove</button>
           </div>
-        </div>
-        <div class="item-price">
-          <span class="price-now line-total">$420</span>
-        </div>
-      </article>
-
-      <article class="item" data-price="86" data-qty="2">
-        <span class="item-index">02</span>
-        <div class="swatch" style="--sw1:#6b7a5a; --sw2:#e4ddc9;" data-mono="C"></div>
-        <div class="item-info">
-          <div class="item-cat">Children — Everyday</div>
-          <h3 class="item-name">Linen Popover Shirt</h3>
-          <div class="item-meta"><span>Sand</span><span>Age 6</span><span>Organic linen</span></div>
-          <div class="qty-row">
-            <div class="qty">
-              <button type="button" class="qty-dec" aria-label="Decrease quantity">–</button>
-              <span class="qty-val">2</span>
-              <button type="button" class="qty-inc" aria-label="Increase quantity">+</button>
-            </div>
-            <button type="button" class="remove-btn">Remove</button>
+          <div class="item-price">
+            <span class="price-now line-total">{{ '$'.number_format($item->lineTotal(), 2) }}</span>
           </div>
-        </div>
-        <div class="item-price">
-          <span class="price-now line-total">$172</span>
-        </div>
-      </article>
-
-      <article class="item" data-price="38" data-qty="1">
-        <span class="item-index">03</span>
-        <div class="swatch" style="--sw1:#b5623b; --sw2:#f1d9c4;" data-mono="B"></div>
-        <div class="item-info">
-          <div class="item-cat">Beauty — Skin</div>
-          <h3 class="item-name">Overnight Repair Balm</h3>
-          <div class="item-meta"><span>50ml</span><span>Cruelty-free</span></div>
-          <div class="qty-row">
-            <div class="qty">
-              <button type="button" class="qty-dec" aria-label="Decrease quantity">–</button>
-              <span class="qty-val">1</span>
-              <button type="button" class="qty-inc" aria-label="Increase quantity">+</button>
-            </div>
-            <button type="button" class="remove-btn">Remove</button>
-          </div>
-        </div>
-        <div class="item-price">
-          <span class="price-was">$44</span>
-          <span class="price-now line-total">$38</span>
-        </div>
-      </article>
+        </article>
+      @endforeach
     </div>
 
-    <div class="continue-row">
-      <a class="continue-link" href="https://post-z44n.onrender.com/">
+    <div class="continue-row" @if($cart->items->isEmpty()) hidden @endif>
+      <a class="continue-link" href="{{ url('/') }}">
         <span class="arrow">←</span> Continue reading the collection
       </a>
       <label class="gift-note">
@@ -567,12 +524,12 @@
       </label>
     </div>
 
-    <!-- Empty state (hidden by default, shown via JS when cart is emptied) -->
-    <div class="empty" id="emptyState" hidden>
+    <!-- Empty state -->
+    <div class="empty" id="emptyState" @unless($cart->items->isEmpty()) hidden @endunless>
       <p class="eyebrow">Your bag</p>
       <h2 style="font-family:'Fraunces', serif; font-weight:400; font-size:26px; margin:8px 0 0;">No stories in here yet.</h2>
       <p>Every piece in the house arrives with an origin card. Find one worth carrying.</p>
-      <a href="https://post-z44n.onrender.com/" style="display:inline-block; padding:13px 26px; background:var(--ink); color:var(--paper); border-radius:999px; font-size:13px; letter-spacing:.04em;">Browse the collection</a>
+      <a href="{{ url('/') }}" style="display:inline-block; padding:13px 26px; background:var(--ink); color:var(--paper); border-radius:999px; font-size:13px; letter-spacing:.04em;">Browse the collection</a>
     </div>
   </section>
 
@@ -587,7 +544,7 @@
         <h2 class="oc-title">Where this order begins.</h2>
         <p class="oc-sub">Packed in Como, shipped carbon-neutral.</p>
 
-        <div class="row dim"><span>Subtotal</span><span class="val" id="subtotalVal">$630</span></div>
+        <div class="row dim"><span>Subtotal</span><span class="val" id="subtotalVal">{{ '$'.number_format($cart->total(), 2) }}</span></div>
         <div class="row dim"><span>Shipping</span><span class="val">Carbon-neutral — Free</span></div>
         <div class="row dim"><span>Estimated duties</span><span class="val">Calculated at checkout</span></div>
 
@@ -600,7 +557,7 @@
 
         <div class="row total">
           <span class="oc-title-inline">Total</span>
-          <span class="val oc-title-inline" id="totalVal">$630</span>
+          <span class="val oc-title-inline" id="totalVal">{{ '$'.number_format($cart->total(), 2) }}</span>
         </div>
 
         <button class="checkout-btn" type="button">Continue to checkout</button>
@@ -642,58 +599,88 @@
 </footer>
 
 <script>
-  function formatUSD(n){ return '$' + n.toLocaleString('en-US'); }
+  // ملاحظة: كانت هذه السلة وهمية بالكامل (3 عناصر ثابتة، وتُحسب الكميات
+  // محلياً في المتصفح فقط دون أي اتصال بالسيرفر). الآن كل تعديل على الكمية
+  // أو الحذف يُرسل فعلياً إلى /cart/items/{id} ويُحدَّث من رد السيرفر
+  // (الذي يحسب الإجمالي الحقيقي من قاعدة البيانات).
+  function formatUSD(n){ return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  function recalc(){
-    let subtotal = 0;
-    let count = 0;
-    document.querySelectorAll('.item').forEach(item => {
-      const price = parseFloat(item.dataset.price);
-      const qty = parseInt(item.dataset.qty, 10);
-      subtotal += price * qty;
-      count += qty;
-      item.querySelector('.line-total').textContent = formatUSD(price * qty);
+  function csrfToken(){
+    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+  }
+
+  function updateTotals(total){
+    document.getElementById('subtotalVal').textContent = formatUSD(total);
+    document.getElementById('totalVal').textContent = formatUSD(total);
+  }
+
+  function updateHeaderBadge(count){
+    document.querySelectorAll('.bag-count, .cart-badge').forEach(el => el.textContent = count);
+  }
+
+  function renumberItems(){
+    document.querySelectorAll('.item').forEach((el, i) => {
+      el.querySelector('.item-index').textContent = String(i + 1).padStart(2, '0');
     });
-    document.getElementById('subtotalVal').textContent = formatUSD(subtotal);
-    document.getElementById('totalVal').textContent = formatUSD(subtotal);
-    document.getElementById('headerCount').textContent = count;
+  }
 
-    const list = document.getElementById('itemsList');
-    const empty = document.getElementById('emptyState');
+  function toggleEmptyState(){
     const hasItems = document.querySelectorAll('.item').length > 0;
-    list.hidden = !hasItems;
+    document.getElementById('itemsList').hidden = !hasItems;
     document.querySelector('.list-head').hidden = !hasItems;
     document.querySelector('.continue-row').hidden = !hasItems;
-    empty.hidden = hasItems;
+    document.getElementById('emptyState').hidden = hasItems;
   }
 
   document.getElementById('itemsList').addEventListener('click', (e) => {
     const item = e.target.closest('.item');
     if(!item) return;
+    const itemId = item.dataset.itemId;
 
-    if(e.target.classList.contains('qty-inc')){
-      item.dataset.qty = parseInt(item.dataset.qty,10) + 1;
-      item.querySelector('.qty-val').textContent = item.dataset.qty;
-      recalc();
-    }
-    if(e.target.classList.contains('qty-dec')){
-      const next = Math.max(1, parseInt(item.dataset.qty,10) - 1);
-      item.dataset.qty = next;
-      item.querySelector('.qty-val').textContent = next;
-      recalc();
-    }
-    if(e.target.classList.contains('remove-btn')){
-      item.remove();
-      document.querySelectorAll('.item').forEach((el, i) => {
-        el.querySelector('.item-index').textContent = String(i+1).padStart(2,'0');
+    if(e.target.classList.contains('qty-inc') || e.target.classList.contains('qty-dec')){
+      const current = parseInt(item.dataset.qty, 10);
+      const next = e.target.classList.contains('qty-inc') ? current + 1 : Math.max(1, current - 1);
+      if(next === current) return;
+
+      fetch(`/cart/items/${itemId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken()
+        },
+        body: JSON.stringify({ quantity: next })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if(!data.success) return;
+        item.dataset.qty = next;
+        item.querySelector('.qty-val').textContent = next;
+        item.querySelector('.line-total').textContent = formatUSD(data.line_total);
+        updateTotals(data.total);
+        updateHeaderBadge(data.count);
       });
-      recalc();
+    }
+
+    if(e.target.classList.contains('remove-btn')){
+      fetch(`/cart/items/${itemId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken()
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if(!data.success) return;
+        item.remove();
+        renumberItems();
+        updateTotals(data.total);
+        updateHeaderBadge(data.count);
+        toggleEmptyState();
+      });
     }
   });
-
-  recalc();
 </script>
 
-</body>
-</html>
 </x-muster>

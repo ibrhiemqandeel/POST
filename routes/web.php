@@ -8,6 +8,8 @@ use App\Http\Controllers\DashboardController; // <--- تعديل مسار الا
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\CjProductController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 
 
 /*
@@ -48,11 +50,40 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        // ملاحظة: view('dashboard') هي واجهة إدارة المنتجات المخصصة للأدمن،
+        // لذلك المستخدم العادي يُحوَّل الآن إلى صفحة "حسابي" الخاصة به بدل
+        // عرض واجهة الأدمن عن طريق الخطأ (راجع resources/views/account.blade.php).
+        return view('account');
     })->name('dashboard');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Locale & Currency Switchers (تبديل اللغة والعملة من الهيدر)
+|--------------------------------------------------------------------------
+*/
+Route::get('/locale/{locale}', function (string $locale) {
+    $available = config('app.available_locales', ['en', 'fr', 'es', 'de', 'ja', 'ar']);
+
+    if (in_array($locale, $available, true)) {
+        session(['locale' => $locale]);
+        app()->setLocale($locale);
+    }
+
+    return back();
+})->name('locale.switch');
+
+Route::get('/currency/{currency}', function (string $currency) {
+    $available = config('app.available_currencies', ['USD', 'EUR', 'GBP', 'JPY', 'AED']);
+
+    if (in_array($currency, $available, true)) {
+        session(['currency' => $currency]);
+    }
+
+    return back();
+})->name('currency.switch');
 
 /*
 |--------------------------------------------------------------------------
@@ -61,9 +92,24 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); // <--- استخدام الكلاس المحدث
+
+    // إدارة المنتجات من لوحة التحكم: إضافة / تعديل / حذف فعلي في قاعدة البيانات
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
 });
 
-Route::get('/run-setup', function () {
+// حماية أمنية: هذا المسار كان بدون أي حماية ويسمح لأي زائر بتشغيل migrate
+// --force على قاعدة البيانات. الآن يتطلب توكن سري معرّف في .env (SETUP_TOKEN)
+// ولن يعمل إطلاقاً إذا لم يكن هذا المتغير معرّفاً.
+Route::get('/run-setup', function (\Illuminate\Http\Request $request) {
+    $setupToken = env('SETUP_TOKEN');
+
+    if (empty($setupToken) || $request->query('token') !== $setupToken) {
+        abort(404);
+    }
+
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
@@ -82,3 +128,12 @@ Route::post('/cj/import-product', [CjProductController::class, 'importProduct'])
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products');
+
+/*
+|--------------------------------------------------------------------------
+| Cart (السلة الحقيقية - تعمل للزوار والمستخدمين المسجلين معاً)
+|--------------------------------------------------------------------------
+*/
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::patch('/cart/items/{item}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/items/{item}', [CartController::class, 'remove'])->name('cart.remove');

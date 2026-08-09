@@ -34,7 +34,9 @@ class AuthController extends Controller
         Auth::login($user);
 
         // التوجيه بناءً على الصلاحية
-        return $user->is_admin ? redirect()->intended('/admin') : redirect()->intended('/');
+        // ملاحظة: كان يوجّه الأدمن إلى '/admin' وهو مسار غير معرّف فعلياً
+        // (المسار الحقيقي هو '/admin/dashboard')، فكان يؤدي لخطأ 404.
+        return $user->is_admin ? redirect()->intended(route('admin.dashboard')) : redirect()->intended('/');
     }
 
     // عرض صفحة تسجيل الدخول
@@ -56,7 +58,7 @@ class AuthController extends Controller
 
             // التوجيه: إذا كان أدمن يُرسل للوحة التحكم، وإلا للصفحة الرئيسية
             if (Auth::user()->is_admin) {
-                return redirect()->intended('/admin');
+                return redirect()->intended(route('admin.dashboard'));
             }
 
             return redirect()->intended('/');

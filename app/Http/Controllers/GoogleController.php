@@ -40,7 +40,11 @@ class GoogleController extends Controller
             // تسجيل دخول المستخدم
             Auth::login($user, true);
 
-            return redirect()->intended('/dashboard');
+            // نفس منطق التوجيه المستخدم في AuthController: الأدمن للوحة التحكم،
+            // والمستخدم العادي لصفحة حسابه.
+            return $user->is_admin
+                ? redirect()->intended(route('admin.dashboard'))
+                : redirect()->intended('/dashboard');
 
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'حدث خطأ أثناء تسجيل الدخول بواسطة Google.');

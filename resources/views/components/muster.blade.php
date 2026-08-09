@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#5A3A30">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name', 'POST') }}</title>
     <meta name="description" content="{{ $description ?? '' }}">
 
@@ -12,14 +13,14 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? config('app.name', 'POST') }}">
     <meta property="og:description" content="{{ $description ?? '' }}">
-    <meta property="og:image" content="{{ asset('post-logo.png') }}">
+    <meta property="og:image" content="{{ asset('images/post-logo.png') }}">
     <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? config('app.name', 'POST') }}">
     <meta name="twitter:description" content="{{ $description ?? '' }}">
 
-    <link rel="icon" href="{{ asset('post-logo.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('post-logo.png') }}">
+    <link rel="icon" href="{{ asset('images/post-logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/post-logo.png') }}">
 
     <!-- Brand typefaces: Fraunces (display) + Manrope (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,6 +128,7 @@
         .nav__icons{display:flex;gap:1.2rem;align-items:center}
         .nav__icons svg{width:19px;height:19px;stroke:var(--ink)}
         .icon-btn{background:none;border:none;padding:0;cursor:pointer;color:inherit;display:inline-flex;align-items:center;justify-content:center}
+        .cart-badge{position:absolute;top:-8px;right:-10px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--rose-deep);color:var(--white);font-size:.65rem;line-height:16px;text-align:center;font-weight:700}
         @media (max-width:860px){ .nav__links{display:none} }
 
         /* ---------- Hero ---------- */
@@ -238,6 +240,8 @@
     $isLoggedIn = auth()->check();
     $isAdmin = $isLoggedIn && auth()->user()?->is_admin;
     $adminDashboardUrl = ($isAdmin && Route::has('admin.dashboard')) ? route('admin.dashboard') : '';
+    // عدد قطع السلة الحقيقي (بدون إنشاء سلة جديدة لكل زائر، انظر Cart::currentCount)
+    $cartCount = \App\Models\Cart::currentCount();
 @endphp
 
     {{-- ============================= HEADER ============================= --}}
@@ -302,10 +306,13 @@
                     </svg>
                 </a>
 
-                <a href="{{ Route::has('cart') ? route('cart') : '#' }}" class="icon-btn" aria-label="{{ __('Cart') }}">
+                <a href="{{ Route::has('cart') ? route('cart') : '#' }}" class="icon-btn" style="position:relative" aria-label="{{ __('Cart') }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
                         <path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>
                     </svg>
+                    @if($cartCount > 0)
+                        <span class="cart-badge">{{ $cartCount }}</span>
+                    @endif
                 </a>
             </div>
         </div>
@@ -393,6 +400,7 @@
         about: "{{ Route::has('about') ? route('about') : '#' }}",
         login: "{{ Route::has('login') ? route('login') : '#' }}",
         cart: "{{ Route::has('cart') ? route('cart') : '#' }}",
+        contact: "{{ Route::has('contact') ? route('contact') : '#' }}",
 
         adminDashboard: "{{ $adminDashboardUrl }}",
         isLoggedIn: "{{ $isLoggedIn ? 'true' : 'false' }}",
@@ -400,9 +408,11 @@
 
         locale: "{{ app()->getLocale() }}",
         currency: "{{ session('currency', 'USD') }}",
-
-
     };
+
+    // عدد قطع السلة الحقيقي القادم من قاعدة البيانات (يُستخدم في public/app.js
+    // لتحديث عدّاد السلة في الهيدر عند تحميل أي صفحة).
+    window.cartCount = {{ (int) $cartCount }};
 
     // تبديل اللغة والعملة من الهيدر
     document.addEventListener('DOMContentLoaded', function () {

@@ -2,7 +2,7 @@
     <main>
         <section class="page-hero">
             <div class="container">
-                <div class="crumb"><a href="index.html">Home</a><span>/</span>Women</div>
+                <div class="crumb"><a href="{{ url('/') }}">Home</a><span>/</span>Women</div>
                 <span class="eyebrow">The Women's Edit</span>
                 <h1 style="margin-top:.7rem">Women</h1>
                 <p>Quietly assured pieces made from named, traceable materials. Built to be worn for years, and to begin a story every time you reach for them.</p>
@@ -32,7 +32,9 @@
                 </div>
             </div>
 
-            <div class="prod-grid reveal" data-products data-filter="women" data-count="#womenCount"></div>
+            <div class="prod-grid reveal">
+                @include('partials.product-grid', ['products' => $products, 'countSelector' => '#womenCount'])
+            </div>
 
             <div class="pagination">
                 <button class="active">1</button>

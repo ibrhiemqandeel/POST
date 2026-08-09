@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>POST — لوحة التحكم الإحترافية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -170,10 +171,10 @@
       </div>
       <select class="filter" id="catFilter" onchange="render()">
         <option value="">كل الفئات</option>
-        <option>نساء</option>
-        <option>أطفال</option>
-        <option>تجميل</option>
-        <option>إكسسوارات</option>
+        <option value="women">نساء</option>
+        <option value="kids">أطفال</option>
+        <option value="beauty">تجميل</option>
+        <option value="accessories">إكسسوارات</option>
       </select>
       <select class="filter" id="statusFilter" onchange="render()">
         <option value="">كل الحالات</option>
@@ -222,10 +223,10 @@
       <div class="field">
         <label>الفئة</label>
         <select id="f_cat">
-          <option>نساء</option>
-          <option>أطفال</option>
-          <option>تجميل</option>
-          <option>إكسسوارات</option>
+          <option value="women">نساء</option>
+          <option value="kids">أطفال</option>
+          <option value="beauty">تجميل</option>
+          <option value="accessories">إكسسوارات</option>
         </select>
       </div>
       <div class="field">
@@ -281,13 +282,52 @@
 </div>
 
 <script>
-let products = [
-  {id:1,name:"فستان كتان — طبعة كومو",cat:"نساء",img:"",platform:"Syncee",supplier:"Como Textiles Co.",cost:38,price:89,stock:24,status:"synced"},
-  {id:2,name:"سترة صوف للأطفال",cat:"أطفال",img:"",platform:"CJ Dropshipping",supplier:"NordKids Supply",cost:14,price:35,stock:0,status:"out"},
-  {id:3,name:"مصل فيتامين سي",cat:"تجميل",img:"",platform:"Spocket",supplier:"Pure Lab EU",cost:6,price:24,stock:120,status:"synced"},
-  {id:4,name:"حزام جلد طبيعي",cat:"إكسسوارات",img:"",platform:"Syncee",supplier:"Milano Leather House",cost:12,price:42,stock:8,status:"pending"},
-];
-let nextId = 5;
+/* =================================================================
+   لوحة التحكم أصبحت متصلة فعلياً بقاعدة البيانات عبر /admin/products
+   (App\Http\Controllers\Admin\ProductController) بدل العمل على مصفوفة
+   JS محلية غير محفوظة كما كانت سابقاً. أي إضافة/تعديل/حذف هنا يُطبَّق
+   فوراً على نفس قاعدة البيانات التي تعرضها صفحات Women/Kids/Beauty/
+   Accessories في الموقع.
+   ================================================================= */
+let products = [];
+
+const CATEGORY_LABELS = { women: 'نساء', kids: 'أطفال', beauty: 'تجميل', accessories: 'إكسسوارات' };
+
+function csrfToken(){
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+function apiRequest(url, options = {}){
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': csrfToken(),
+      ...(options.headers || {})
+    }
+  }).then(async r => {
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok || data.success === false){
+      throw new Error(data.message || 'حدث خطأ غير متوقع.');
+    }
+    return data;
+  });
+}
+
+function loadProducts(){
+  return apiRequest('{{ route("admin.products.index") }}')
+    .then(data => {
+      products = data.products || [];
+      render();
+    })
+    .catch(err => {
+      document.getElementById('tbody').innerHTML = '';
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('emptyState').querySelector('h3').textContent = 'تعذّر تحميل المنتجات';
+      document.getElementById('emptyState').querySelector('div').textContent = err.message;
+    });
+}
 
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
@@ -343,7 +383,7 @@ function render(){
             <div class="thumb">${imgContent}</div>
             <div>
               <div class="prod-name">${p.name}</div>
-              <div class="prod-cat">${p.cat}</div>
+              <div class="prod-cat">${CATEGORY_LABELS[p.cat] || p.cat}</div>
             </div>
           </div>
         </td>
@@ -402,7 +442,7 @@ function openModal(isEdit = false){
     document.getElementById('modalTitle').textContent = 'إضافة منتج (دروب شوبينغ)';
     document.getElementById('f_id').value = '';
     ['f_name','f_img','f_supplier','f_cost','f_price','f_stock'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('f_cat').value = 'نساء';
+    document.getElementById('f_cat').value = 'women';
     document.getElementById('f_platform').value = 'Syncee';
     document.getElementById('f_status').value = 'pending';
   } else {
@@ -474,35 +514,34 @@ function saveProduct(){
 
   const prodData = {
     name,
-    cat: document.getElementById('f_cat').value,
-    img: document.getElementById('f_img').value.trim(),
-    platform: document.getElementById('f_platform').value,
-    supplier: document.getElementById('f_supplier').value.trim() || 'مورد غير محدد',
-    cost,
+    category: document.getElementById('f_cat').value,
+    image: document.getElementById('f_img').value.trim(),
+    supplier_platform: document.getElementById('f_platform').value,
+    supplier_name: document.getElementById('f_supplier').value.trim() || 'مورد غير محدد',
+    cost_price: cost,
     price,
     stock: parseInt(document.getElementById('f_stock').value) || 0,
-    status: document.getElementById('f_status').value,
+    sync_status: document.getElementById('f_status').value,
   };
 
-  if(id){
-    // Edit existing
-    const index = products.findIndex(p => p.id === parseInt(id));
-    if(index !== -1){
-      products[index] = { id: parseInt(id), ...prodData };
-    }
-  } else {
-    // New product
-    products.push({ id: nextId++, ...prodData });
-  }
+  const request = id
+    ? apiRequest(`{{ url('/admin/products') }}/${id}`, { method: 'PUT', body: JSON.stringify(prodData) })
+    : apiRequest('{{ route("admin.products.store") }}', { method: 'POST', body: JSON.stringify(prodData) });
 
-  closeModal();
-  render();
+  request
+    .then(() => {
+      closeModal();
+      return loadProducts();
+    })
+    .catch(err => alert(err.message));
 }
 
 function deleteProduct(id){
   if(!confirm('هل انت تأكد من رغبتك في حذف هذا المنتج من الكتالوج؟')) return;
-  products = products.filter(p => p.id !== id);
-  render();
+
+  apiRequest(`{{ url('/admin/products') }}/${id}`, { method: 'DELETE' })
+    .then(() => loadProducts())
+    .catch(err => alert(err.message));
 }
 
 function exportJSON(){
@@ -515,7 +554,7 @@ function exportJSON(){
   downloadAnchor.remove();
 }
 
-render();
+loadProducts();
 </script>
 </body>
 </html>

@@ -48,6 +48,9 @@ class ProductController extends Controller
             return response()->json(['success' => true, 'data' => $product]);
         }
 
-        return view('products.show', compact('product'));
+        // ملاحظة: كانت هذه الدالة تستدعي view غير موجودة (products.show) وتسبب
+        // خطأ 500 عند فتح أي منتج. تم توحيدها مع نفس صفحة المنتج المستخدمة في
+        // باقي المشروع (resources/views/product.blade.php).
+        return view('product', compact('product'));
     }
 }
