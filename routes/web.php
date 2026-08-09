@@ -114,9 +114,12 @@ Route::get('/run-setup', function (\Illuminate\Http\Request $request) {
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
     Artisan::call('migrate', ['--force' => true]);
+    // الـ seeders (المستخدم الأدمن + الفئات + كتالوج المنتجات) كلها مبنية
+    // بـ updateOrCreate، فتشغيلها أكثر من مرة آمن ولا يكرر أي بيانات.
+    Artisan::call('db:seed', ['--force' => true]);
 
     return response()->json([
-        'message' => 'تم مسح الكاش وتشغيل الميجريشن بنجاح!'
+        'message' => 'تم مسح الكاش وتشغيل الميجريشن والـ seeders بنجاح!'
     ]);
 });
 
