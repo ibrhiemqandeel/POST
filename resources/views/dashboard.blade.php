@@ -142,8 +142,8 @@
       <div class="nav-item">↳ الموردون</div>
       <div class="nav-item">↳ التقارير</div>
       <div class="nav-eyebrow">دروب شوبينغ</div>
-      <div class="nav-item">↳ استيراد من Syncee</div>
-      <div class="nav-item">↳ مزامنة المخزون</div>
+      <div class="nav-item" onclick="openCjModal()">↳ استيراد من CJ Dropshipping</div>
+      <div class="nav-item" onclick="syncCjInventory()">↳ مزامنة المخزون</div>
       <div class="nav-eyebrow">الإعدادات</div>
       <div class="nav-item">↳ الفئات</div>
       <div class="nav-item">↳ الحساب</div>
@@ -159,6 +159,7 @@
       </div>
       <div class="btn-group">
         <button class="btn btn-ghost" onclick="exportJSON()">📥 تصدير JSON</button>
+        <button class="btn btn-ghost" onclick="openCjModal()">🔗 استيراد من CJ Dropshipping</button>
         <button class="btn btn-primary" onclick="openModal()">+ إضافة منتج جديد</button>
       </div>
     </div>
@@ -277,6 +278,41 @@
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
       <button class="btn btn-primary" onclick="saveProduct()">حفظ البيانات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: استيراد من CJ Dropshipping -->
+<div class="overlay" id="cjOverlay">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-head">
+      <h2>استيراد منتجات من CJ Dropshipping</h2>
+      <button class="modal-close" onclick="closeCjModal()">×</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;gap:14px">
+      <div class="section-note" id="cjNote">
+        يتطلب هذا القسم ضبط بيانات CJ_EMAIL وCJ_API_KEY في إعدادات الخادم. اختر الفئة وهامش الربح قبل الاستيراد، ويمكنك تعديل أي قيمة (السعر، الصورة، الفئة...) لاحقاً بحرية من زر "تعديل" في الجدول الرئيسي.
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="field" style="flex:1;min-width:140px">
+          <label>الفئة عند الاستيراد</label>
+          <select id="cjCategory">
+            <option value="women">نساء</option>
+            <option value="kids">أطفال</option>
+            <option value="beauty">تجميل</option>
+            <option value="accessories">إكسسوارات</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;min-width:120px">
+          <label>هامش الربح %</label>
+          <input id="cjMargin" type="number" min="0" step="1" value="30">
+        </div>
+        <button class="btn btn-primary" onclick="loadCjProducts(1)">تحميل منتجات CJ</button>
+      </div>
+      <div id="cjList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;max-height:420px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCjModal()">إغلاق</button>
     </div>
   </div>
 </div>
@@ -455,8 +491,81 @@ function closeModal(){
   document.getElementById('overlay').classList.remove('open');
 }
 
+/* =================================================================
+   استيراد من CJ Dropshipping — يستخدم الـ endpoints الموجودة فعلياً في
+   App\Http\Controllers\CjProductController (كانت بلا أي واجهة استخدام).
+   ================================================================= */
+function openCjModal(){
+  document.getElementById('cjOverlay').classList.add('open');
+  document.getElementById('cjList').innerHTML = '';
+}
+
+function closeCjModal(){
+  document.getElementById('cjOverlay').classList.remove('open');
+}
+
+function loadCjProducts(page){
+  const list = document.getElementById('cjList');
+  const note = document.getElementById('cjNote');
+  list.innerHTML = '<p style="opacity:.6">جاري التحميل…</p>';
+
+  apiRequest(`{{ route('admin.cj.products') }}?page=${page}&page_size=20`)
+    .then(data => {
+      const items = data?.data?.data?.list || data?.data?.list || [];
+      if(!items.length){
+        list.innerHTML = '<p style="opacity:.6">لا توجد منتجات لعرضها.</p>';
+        return;
+      }
+      list.innerHTML = items.map(item => {
+        const pid = item.pid || item.productId || '';
+        const name = item.productNameEn || item.productName || 'منتج بدون اسم';
+        const img = item.productImage || item.image || '';
+        const wholesale = parseFloat(item.wholesale_price ?? item.productPrice ?? 0);
+        const sell = parseFloat(item.sellPrice ?? 0);
+        return `
+          <div style="border:1px solid var(--line);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:8px">
+            <div class="thumb" style="width:100%;height:110px;border-radius:6px">
+              ${img ? `<img src="${img}" alt="${name}" style="width:100%;height:100%;object-fit:cover">` : (name.slice(0,2))}
+            </div>
+            <div style="font-size:13px;font-weight:600;line-height:1.4">${name}</div>
+            <div style="font-size:12px;color:var(--ink-soft)">جملة: $${wholesale.toFixed(2)} → بيع مقترح: $${sell.toFixed(2)}</div>
+            <button class="btn btn-primary" style="width:100%" onclick="importCjProduct('${pid}', this)">استيراد للكتالوج</button>
+          </div>`;
+      }).join('');
+    })
+    .catch(err => {
+      list.innerHTML = `<p style="color:var(--danger)">${err.message}</p>`;
+    });
+}
+
+function importCjProduct(pid, btn){
+  btn.disabled = true;
+  btn.textContent = 'جاري الاستيراد…';
+
+  const category = document.getElementById('cjCategory').value;
+  const margin = parseFloat(document.getElementById('cjMargin').value) || 0;
+
+  apiRequest('{{ route('admin.cj.import') }}', {
+    method: 'POST',
+    body: JSON.stringify({ pid, category, margin })
+  })
+    .then(() => {
+      btn.textContent = 'تم الاستيراد ✓';
+      loadProducts();
+    })
+    .catch(err => {
+      alert(err.message);
+      btn.disabled = false;
+      btn.textContent = 'استيراد للكتالوج';
+    });
+}
+
 document.getElementById('overlay').addEventListener('click', e=>{
   if(e.target.id === 'overlay') closeModal();
+});
+
+document.getElementById('cjOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'cjOverlay') closeCjModal();
 });
 
 function autoAdjustStatus(){
@@ -541,6 +650,21 @@ function deleteProduct(id){
 
   apiRequest(`{{ url('/admin/products') }}/${id}`, { method: 'DELETE' })
     .then(() => loadProducts())
+    .catch(err => alert(err.message));
+}
+
+/**
+ * مزامنة مخزون بالجملة عبر أمر app:sync-cj-products (كان موجوداً بدون أي
+ * واجهة استخدام). يجلب أحدث صفحة منتجات من CJ ويحدّث الأسعار/المخزون.
+ */
+function syncCjInventory(){
+  if(!confirm('سيتم جلب أحدث المنتجات من CJ Dropshipping وتحديث الكتالوج. متابعة؟')) return;
+
+  apiRequest('{{ route("admin.cj.sync") }}', { method: 'POST', body: JSON.stringify({}) })
+    .then(data => {
+      alert(data.success ? 'تمت المزامنة بنجاح.' : 'فشلت المزامنة.');
+      loadProducts();
+    })
     .catch(err => alert(err.message));
 }
 

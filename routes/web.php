@@ -50,9 +50,12 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        // ملاحظة: view('dashboard') هي واجهة إدارة المنتجات المخصصة للأدمن،
-        // لذلك المستخدم العادي يُحوَّل الآن إلى صفحة "حسابي" الخاصة به بدل
-        // عرض واجهة الأدمن عن طريق الخطأ (راجع resources/views/account.blade.php).
+        // الأدمن يُحوَّل تلقائياً للوحة التحكم الحقيقية (admin.dashboard) بدل
+        // صفحة "حسابي" العادية. أي مستخدم آخر يشوف صفحة حسابه فقط.
+        if (auth()->user()?->is_admin) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('account');
     })->name('dashboard');
 
@@ -98,6 +101,25 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+
+    // استيراد منتجات من CJ Dropshipping (كانت هذه المسارات عامة بدون أي حماية،
+    // ما يسمح لأي زائر بمناداة API الخارجي أو استيراد منتجات دون إذن).
+    Route::get('/cj/products', [CjProductController::class, 'index'])->name('cj.products');
+    Route::post('/cj/import-product', [CjProductController::class, 'importProduct'])->name('cj.import');
+
+    // مزامنة المخزون بالجملة (يستخدم أمر app:sync-cj-products الموجود فعلاً
+    // في app/Console/Commands/SyncCjProducts.php والذي لم يكن له أي واجهة استخدام).
+    Route::post('/cj/sync', function (\Illuminate\Http\Request $request) {
+        $exitCode = Artisan::call('app:sync-cj-products', [
+            '--page'     => $request->input('page', 1),
+            '--pageSize' => $request->input('pageSize', 20),
+        ]);
+
+        return response()->json([
+            'success' => $exitCode === 0,
+            'output'  => Artisan::output(),
+        ]);
+    })->name('cj.sync');
 });
 
 // حماية أمنية: هذا المسار كان بدون أي حماية ويسمح لأي زائر بتشغيل migrate
@@ -122,12 +144,6 @@ Route::get('/run-setup', function (\Illuminate\Http\Request $request) {
         'message' => 'تم مسح الكاش وتشغيل الميجريشن والـ seeders بنجاح!'
     ]);
 });
-
-// مسارات CJ Dropshipping مباشرة
-Route::get('/cj/products', [CjProductController::class, 'index']);
-Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);
-
-
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\CjService;
 use Illuminate\Http\Request;
+use App\Models\Category;
 use App\Models\Product;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -67,7 +68,12 @@ class CjProductController extends Controller
     public function importProduct(Request $request): JsonResponse
     {
         $request->validate([
-            'pid' => 'required|string',
+            'pid'      => 'required|string',
+            'category' => 'nullable|string|in:women,kids,beauty,accessories',
+            // نسبة الربح كنسبة مئوية (مثال: 30 تعني 30%). يمكن تعديلها من واجهة
+            // الاستيراد بدل الاعتماد دائماً على 30% ثابتة، ثم يمكن تعديل السعر
+            // النهائي لاحقاً بحرية من نافذة تعديل المنتج في لوحة التحكم.
+            'margin'   => 'nullable|numeric|min:0|max:500',
         ]);
 
         try {
@@ -88,22 +94,31 @@ class CjProductController extends Controller
             // --- حساب سعرك الخاص (هامش الربح) ---
             $wholesalePrice = (float) ($item['sellPrice'] ?? $item['productPrice'] ?? 0);
 
-            $profitMargin = 0.30; // 30% نسبة ربح
-            $additionalFee = 0.00; // إضافة مبلغ ثابت إن أردت (مثلاً 5 دولار)
+            $profitMargin = ((float) $request->input('margin', 30)) / 100;
+            $myPrice = round($wholesalePrice * (1 + $profitMargin), 2);
 
-            $myPrice = round(($wholesalePrice * (1 + $profitMargin)) + $additionalFee, 2);
+            $category = $request->filled('category')
+                ? Category::where('slug', $request->input('category'))->first()
+                : null;
 
             $product = Product::updateOrCreate(
                 ['sku' => $sku],
                 [
-                    'name'        => $item['productNameEn'] ?? $item['productName'] ?? 'منتج جديد',
-                    'description' => $item['description'] ?? '',
-                    'price'       => $myPrice, // حفظ سعر البيع الخاص بك بدلاً من سعر الجملة
-                    'image'       => $item['productImage'] ?? '',
-                    'stock'       => $item['packingWeight'] ?? 10,
-                    'cj_pid'      => $item['pid'] ?? $request->pid,
+                    'category_id'       => $category?->id,
+                    'name'              => $item['productNameEn'] ?? $item['productName'] ?? 'منتج جديد',
+                    'description'       => $item['description'] ?? '',
+                    'price'             => $myPrice, // حفظ سعر البيع الخاص بك بدلاً من سعر الجملة
+                    'cost_price'        => $wholesalePrice,
+                    'supplier_platform' => 'CJ Dropshipping',
+                    'supplier_name'     => $item['supplierName'] ?? 'CJ Dropshipping',
+                    'sync_status'       => 'synced',
+                    'image'             => $item['productImage'] ?? '',
+                    'stock'             => $item['packingWeight'] ?? 10,
+                    'cj_pid'            => $item['pid'] ?? $request->pid,
                 ]
             );
+
+            $product->load('category');
 
             return response()->json([
                 'success' => true,
