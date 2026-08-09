@@ -7,6 +7,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController; // <--- تعديل مسار الاستدعاء
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\CjProductController;
+use App\Http\Controllers\ProductController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -75,3 +77,8 @@ Route::get('/run-setup', function () {
 // مسارات CJ Dropshipping مباشرة
 Route::get('/cj/products', [CjProductController::class, 'index']);
 Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);
+
+
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');

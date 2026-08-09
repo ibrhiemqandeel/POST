@@ -18,9 +18,8 @@ class CjProductController extends Controller
     }
 
     /**
-     * جلب قائمة المنتجات من CJ Dropshipping
+     * جلب قائمة المنتجات من CJ Dropshipping مع حساب السعر الخاص بك قبل العرض
      */
-    
     public function index(Request $request): JsonResponse
     {
         try {
@@ -29,13 +28,23 @@ class CjProductController extends Controller
 
             $products = $this->cjService->getProducts($page, $pageSize);
 
-            // التحقق مما إذا كانت الاستجابة تحتوي على خطأ من CJ (مثل Rate Limit)
             if (isset($products['result']) && $products['result'] === false) {
                 return response()->json([
                     'success' => false,
                     'message' => $products['message'] ?? 'حدث خطأ أثناء التواصل مع CJ Dropshipping',
                     'data'    => $products
                 ], 429);
+            }
+
+            // تعديل أسعار المنتجات المجلوبة في القائمة قبل إرجاعها
+            if (isset($products['data']['list']) && is_array($products['data']['list'])) {
+                $profitMargin = 0.30; // نسبة الربح (30%)
+
+                foreach ($products['data']['list'] as &$item) {
+                    $originalPrice = (float) ($item['sellPrice'] ?? $item['productPrice'] ?? 0);
+                    $item['wholesale_price'] = $originalPrice; // الاحتفاظ بسعر الجملة للرجوع إليه
+                    $item['sellPrice'] = round($originalPrice * (1 + $profitMargin), 2); // السعر الجديد المعروض
+                }
             }
 
             return response()->json([
@@ -53,7 +62,7 @@ class CjProductController extends Controller
     }
 
     /**
-     * استيراد منتج معين وحفظه أو تحديثه في قاعدة البيانات
+     * استيراد منتج معين وحفظه بالسعر الجديد في قاعدة البيانات
      */
     public function importProduct(Request $request): JsonResponse
     {
@@ -73,15 +82,23 @@ class CjProductController extends Controller
 
             $item = $cjData['data'];
 
-            // قراءة السكيو أو التوليد التلقائي في حال عدم وجوده
+            // قراءة السكيو أو التوليد التلقائي
             $sku = $item['productSku'] ?? $item['sku'] ?? ('CJ-' . ($item['pid'] ?? time()));
+
+            // --- حساب سعرك الخاص (هامش الربح) ---
+            $wholesalePrice = (float) ($item['sellPrice'] ?? $item['productPrice'] ?? 0);
+
+            $profitMargin = 0.30; // 30% نسبة ربح
+            $additionalFee = 0.00; // إضافة مبلغ ثابت إن أردت (مثلاً 5 دولار)
+
+            $myPrice = round(($wholesalePrice * (1 + $profitMargin)) + $additionalFee, 2);
 
             $product = Product::updateOrCreate(
                 ['sku' => $sku],
                 [
                     'name'        => $item['productNameEn'] ?? $item['productName'] ?? 'منتج جديد',
                     'description' => $item['description'] ?? '',
-                    'price'       => $item['sellPrice'] ?? $item['productPrice'] ?? 0,
+                    'price'       => $myPrice, // حفظ سعر البيع الخاص بك بدلاً من سعر الجملة
                     'image'       => $item['productImage'] ?? '',
                     'stock'       => $item['packingWeight'] ?? 10,
                     'cj_pid'      => $item['pid'] ?? $request->pid,
@@ -90,7 +107,7 @@ class CjProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'تم استيراد المنتج بنجاح إلى قاعدة البيانات!',
+                'message' => 'تم استيراد المنتج بنجاح وتحديد سعر البيع!',
                 'product' => $product
             ], 200);
 
