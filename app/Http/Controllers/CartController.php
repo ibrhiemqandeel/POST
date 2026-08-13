@@ -26,6 +26,22 @@ class CartController extends Controller
         $cart = Cart::current();
 
         $item = $cart->items()->where('product_id', $product->id)->first();
+        $requestedQuantity = $item ? $item->quantity + $quantity : $quantity;
+
+        if ($requestedQuantity > $product->stock) {
+            $message = $product->stock > 0
+                ? "الكمية المتوفرة من هذا المنتج هي {$product->stock} فقط."
+                : 'هذا المنتج نفد من المخزون حالياً.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
+            return back()->withErrors(['quantity' => $message]);
+        }
 
         if ($item) {
             $item->increment('quantity', $quantity);
@@ -61,6 +77,23 @@ class CartController extends Controller
         $data = $request->validate([
             'quantity' => 'required|integer|min:1|max:99',
         ]);
+
+        $product = $item->product;
+
+        if ($product && $data['quantity'] > $product->stock) {
+            $message = $product->stock > 0
+                ? "الكمية المتوفرة من هذا المنتج هي {$product->stock} فقط."
+                : 'هذا المنتج نفد من المخزون حالياً.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
+            return back()->withErrors(['quantity' => $message]);
+        }
 
         $item->update(['quantity' => $data['quantity']]);
 

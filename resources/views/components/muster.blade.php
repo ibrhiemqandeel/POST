@@ -228,10 +228,19 @@
         .footer-grid ul a:hover{color:var(--blush-2)}
         .foot-word{font-family:'Fraunces',serif;color:var(--cream);font-size:1.4rem;margin-bottom:.8rem}
         .foot-bottom{margin-top:3rem;padding-top:1.6rem;border-top:1px solid rgba(217,202,189,.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.78rem}
+
+        /* ---------- Toast (رسائل نجاح/خطأ سريعة، مثلاً عند إضافة منتج للسلة) ---------- */
+        #toastStack{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:.6rem;align-items:center;pointer-events:none}
+        .toast{pointer-events:auto;background:var(--ink);color:#fff;padding:.85rem 1.4rem;border-radius:999px;font-size:.85rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease;max-width:90vw;text-align:center}
+        .toast.show{opacity:1;transform:translateY(0)}
+        .toast.toast--error{background:#A23B2E}
+        .toast.toast--success{background:var(--rose-deep)}
     </style>
 </head>
 
 <body data-page="index" data-locale="{{ app()->getLocale() }}">
+
+<div id="toastStack" aria-live="polite"></div>
 
 @php
     // بنحسب هالقيم مرة وحدة هون فوق، بدل ما نكررهم بأكثر من مكان بالصفحة

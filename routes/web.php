@@ -9,7 +9,12 @@ use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\CjProductController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 
 
 /*
@@ -56,10 +61,26 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('admin.dashboard');
         }
 
-        return view('account');
+        // أحدث 5 طلبات للمستخدم الحالي، لعرضها فعلياً في صفحة "حسابي"
+        // بدل النص الثابت القديم "You have no orders yet" الذي كان يظهر
+        // دائماً حتى لو كان للمستخدم طلبات حقيقية.
+        $recentOrders = auth()->user()->orders()->with('items')->latest()->take(5)->get();
+
+        return view('account', compact('recentOrders'));
     })->name('dashboard');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    /*
+    |----------------------------------------------------------------------
+    | Checkout & Orders (طلبات العميل - لازم يكون مسجل دخول)
+    |----------------------------------------------------------------------
+    */
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 });
 
 /*
@@ -120,6 +141,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
             'output'  => Artisan::output(),
         ]);
     })->name('cj.sync');
+
+    // إدارة الطلبات
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+
+    // إدارة التصنيفات
+    Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // إدارة العملاء
+    Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
 });
 
 // حماية أمنية: هذا المسار كان بدون أي حماية ويسمح لأي زائر بتشغيل migrate

@@ -260,6 +260,13 @@
     padding:0;
   }
   .remove-btn:hover{opacity:1; color:var(--clay);}
+  .qty-error{
+    font-size:11.5px;
+    color:#a23b2e;
+    margin-top:6px;
+    display:none;
+  }
+  .qty-error.show{display:block;}
 
   .item-price{
     text-align:right;
@@ -507,6 +514,7 @@
               </div>
               <button type="button" class="remove-btn">Remove</button>
             </div>
+            <div class="qty-error"></div>
           </div>
           <div class="item-price">
             <span class="price-now line-total">{{ '$'.number_format($item->lineTotal(), 2) }}</span>
@@ -560,7 +568,7 @@
           <span class="val oc-title-inline" id="totalVal">{{ '$'.number_format($cart->total(), 2) }}</span>
         </div>
 
-        <button class="checkout-btn" type="button">Continue to checkout</button>
+        <a class="checkout-btn" style="display:block;text-align:center;text-decoration:none" href="{{ auth()->check() ? route('checkout') : route('login') }}">Continue to checkout</a>
 
         <div class="assurances">
           <div class="assurance">
@@ -653,7 +661,13 @@
       })
       .then(r => r.json())
       .then(data => {
-        if(!data.success) return;
+        const errorEl = item.querySelector('.qty-error');
+        if(!data.success){
+          errorEl.textContent = data.message || 'Could not update quantity.';
+          errorEl.classList.add('show');
+          return;
+        }
+        errorEl.classList.remove('show');
         item.dataset.qty = next;
         item.querySelector('.qty-val').textContent = next;
         item.querySelector('.line-total').textContent = formatUSD(data.line_total);

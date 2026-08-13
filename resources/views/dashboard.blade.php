@@ -34,7 +34,7 @@
   .brand{font-family:'Fraunces',serif;font-size:26px;letter-spacing:0.04em;font-weight:500;}
   .brand span{display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#9C9787;margin-top:4px;font-weight:500;}
   .nav{display:flex;flex-direction:column;gap:2px;margin-top:8px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9C5B6;cursor:pointer;transition:.15s;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9C5B6;cursor:pointer;transition:.15s;text-decoration:none;}
   .nav-item:hover{background:#2E2C25;color:#fff;}
   .nav-item.active{background:#EFECE2;color:var(--ink);font-weight:600;}
   .nav-eyebrow{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8672;margin:14px 0 2px 4px;}
@@ -128,31 +128,69 @@
 </head>
 <body>
 
-<div class="mobile-nav">
-  <div class="brand">POST <span>Admin</span></div>
-  <button onclick="toggleSidebar()">☰</button>
-</div>
-
 <div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">POST<span>لوحة التحكم — الإدارة</span></div>
-    <nav class="nav">
-      <div class="nav-item active">↳ المنتجات</div>
-      <div class="nav-item">↳ الطلبات</div>
-      <div class="nav-item">↳ الموردون</div>
-      <div class="nav-item">↳ التقارير</div>
-      <div class="nav-eyebrow">دروب شوبينغ</div>
-      <div class="nav-item" onclick="openCjModal()">↳ استيراد من CJ Dropshipping</div>
-      <div class="nav-item" onclick="syncCjInventory()">↳ مزامنة المخزون</div>
-      <div class="nav-eyebrow">الإعدادات</div>
-      <div class="nav-item">↳ الفئات</div>
-      <div class="nav-item">↳ الحساب</div>
-    </nav>
-    <div class="sidebar-foot">لوحة التحكم المخصصة لـ POST — تتزامن برمجياً عبر API.</div>
-  </aside>
+  @include('admin.partials.sidebar', ['active' => 'products'])
 
   <main class="main">
+    {{-- ============================================================
+         نظرة عامة على المتجر — أرقام حقيقية من قاعدة البيانات
+         (وليست بيانات وهمية)، تُحسب في DashboardController::index().
+         ============================================================ --}}
     <div class="topbar">
+      <div>
+        <h1 class="page-title">نظرة عامة</h1>
+        <div class="page-sub">أداء المتجر الحقيقي من قاعدة البيانات، محدَّث لحظياً.</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">المنتجات</div>
+        <div class="stat-value">{{ $stats['total_products'] }}</div>
+        <div class="stat-tag">{{ $stats['out_of_stock'] }} نفد مخزونها</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">الطلبات</div>
+        <div class="stat-value">{{ $stats['total_orders'] }}</div>
+        <div class="stat-tag">{{ $stats['pending_orders'] }} قيد الانتظار</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">العملاء</div>
+        <div class="stat-value">{{ $stats['total_customers'] }}</div>
+        <div class="stat-tag">{{ $stats['total_categories'] }} تصنيف</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">إجمالي المبيعات</div>
+        <div class="stat-value">${{ number_format($stats['total_sales'], 2) }}</div>
+        <div class="stat-tag">{{ $stats['completed_orders'] }} طلب مكتمل</div>
+      </div>
+    </div>
+
+    @if($recentOrders->isNotEmpty() || $bestSellers->isNotEmpty())
+      <div class="toolbar" style="margin-top:4px">
+        <div class="table-wrap" style="flex:1">
+          <table>
+            <thead>
+              <tr><th colspan="4" style="font-family:'Fraunces',serif;font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:500;padding-bottom:10px">أحدث الطلبات</th></tr>
+            </thead>
+            <tbody>
+              @forelse($recentOrders as $order)
+                <tr>
+                  <td>#{{ $order->id }}</td>
+                  <td>{{ $order->shipping_name ?? $order->user?->name ?? 'زائر' }}</td>
+                  <td class="price-cell">${{ number_format($order->total, 2) }}</td>
+                  <td><span class="badge {{ $order->status === 'cancelled' ? 'badge-out' : ($order->status === 'pending' ? 'badge-pending' : 'badge-synced') }}">{{ $order->status }}</span></td>
+                </tr>
+              @empty
+                <tr><td colspan="4" class="prod-cat">لا توجد طلبات بعد.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    @endif
+
+    <div class="topbar" style="margin-top:30px">
       <div>
         <h1 class="page-title">إدارة المنتجات</h1>
         <div class="page-sub" id="prodCount">— منتج في الكتالوج</div>
@@ -351,6 +389,18 @@ function apiRequest(url, options = {}){
   });
 }
 
+// يمنع XSS عند عرض بيانات قد تكون غير موثوقة (مثلاً أسماء منتجات آتية من
+// CJ Dropshipping، وهي API خارجي لا نتحكم بمحتواه) داخل innerHTML.
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function escapeAttr(str){
+  return escapeHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function loadProducts(){
   return apiRequest('{{ route("admin.products.index") }}')
     .then(data => {
@@ -407,9 +457,10 @@ function render(){
     empty.style.display = 'none';
     tbody.innerHTML = filtered.map(p=>{
       const m = marginPct(p.cost, p.price);
-      const initials = p.name.split(' ')[0].slice(0,2);
+      const safeName = escapeHtml(p.name);
+      const initials = escapeHtml(p.name.split(' ')[0].slice(0,2));
       const imgContent = p.img
-        ? `<img src="${p.img}" alt="${p.name}" onerror="this.onerror=null; this.parentNode.innerText='${initials}';">`
+        ? `<img src="${escapeAttr(p.img)}" alt="${escapeAttr(p.name)}" onerror="this.onerror=null; this.parentNode.innerText=${JSON.stringify(p.name.split(' ')[0].slice(0,2))};">`
         : initials;
 
       return `
@@ -418,13 +469,13 @@ function render(){
           <div class="prod-cell">
             <div class="thumb">${imgContent}</div>
             <div>
-              <div class="prod-name">${p.name}</div>
-              <div class="prod-cat">${CATEGORY_LABELS[p.cat] || p.cat}</div>
+              <div class="prod-name">${safeName}</div>
+              <div class="prod-cat">${escapeHtml(CATEGORY_LABELS[p.cat] || p.cat)}</div>
             </div>
           </div>
         </td>
         <td>
-          <div class="supplier-src">${p.platform} · ${p.supplier}</div>
+          <div class="supplier-src">${escapeHtml(p.platform)} · ${escapeHtml(p.supplier)}</div>
         </td>
         <td class="price-cell">$${p.cost.toFixed(2)}</td>
         <td class="price-cell">$${p.price.toFixed(2)}</td>
@@ -517,19 +568,23 @@ function loadCjProducts(page){
         return;
       }
       list.innerHTML = items.map(item => {
-        const pid = item.pid || item.productId || '';
-        const name = item.productNameEn || item.productName || 'منتج بدون اسم';
+        // ملاحظة أمنية: هذه البيانات آتية من CJ Dropshipping، وهو API خارجي
+        // لا نتحكم بمحتواه — يجب معاملة كل حقل هنا كـ "غير موثوق" وتفاديه
+        // (escape) قبل إدخاله في innerHTML، تماماً كما نفعل مع مدخلات المستخدم.
+        const pidRaw = item.pid || item.productId || '';
+        const nameRaw = item.productNameEn || item.productName || 'منتج بدون اسم';
         const img = item.productImage || item.image || '';
         const wholesale = parseFloat(item.wholesale_price ?? item.productPrice ?? 0);
         const sell = parseFloat(item.sellPrice ?? 0);
+        const name = escapeHtml(nameRaw);
         return `
           <div style="border:1px solid var(--line);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:8px">
             <div class="thumb" style="width:100%;height:110px;border-radius:6px">
-              ${img ? `<img src="${img}" alt="${name}" style="width:100%;height:100%;object-fit:cover">` : (name.slice(0,2))}
+              ${img ? `<img src="${escapeAttr(img)}" alt="${escapeAttr(nameRaw)}" style="width:100%;height:100%;object-fit:cover">` : escapeHtml(nameRaw.slice(0,2))}
             </div>
             <div style="font-size:13px;font-weight:600;line-height:1.4">${name}</div>
             <div style="font-size:12px;color:var(--ink-soft)">جملة: $${wholesale.toFixed(2)} → بيع مقترح: $${sell.toFixed(2)}</div>
-            <button class="btn btn-primary" style="width:100%" onclick="importCjProduct('${pid}', this)">استيراد للكتالوج</button>
+            <button class="btn btn-primary" style="width:100%" data-cj-pid="${escapeAttr(pidRaw)}" onclick="importCjProduct(this.dataset.cjPid, this)">استيراد للكتالوج</button>
           </div>`;
       }).join('');
     })

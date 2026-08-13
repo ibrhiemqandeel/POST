@@ -350,6 +350,24 @@ function mountGrids() {
 }
 
 /* =================================================================
+   Toast — رسالة نجاح/خطأ سريعة تظهر أسفل الشاشة (مثلاً عند إضافة منتج
+   للسلة أو عند رفض الكمية لتجاوزها المخزون المتاح).
+   ================================================================= */
+function showToast(message, type = "success") {
+    const stack = document.getElementById("toastStack");
+    if (!stack || !message) return;
+    const el = document.createElement("div");
+    el.className = "toast toast--" + (type === "error" ? "error" : "success");
+    el.textContent = message;
+    stack.appendChild(el);
+    requestAnimationFrame(() => el.classList.add("show"));
+    setTimeout(() => {
+        el.classList.remove("show");
+        setTimeout(() => el.remove(), 300);
+    }, 3000);
+}
+
+/* =================================================================
    Cart — متصل الآن فعلياً بالسيرفر (Laravel: /cart/add) بدل الاعتماد
    الكامل على localStorage فقط. راجع App\Http\Controllers\CartController.
    ================================================================= */
@@ -397,7 +415,15 @@ function initEvents() {
             const id = addBtn.dataset.id;
             // منتجات قاعدة البيانات الحقيقية لها id رقمي (راجع resources/views/product.blade.php)
             if (id && /^\d+$/.test(id)) {
-                Cart.addToServer(id);
+                Cart.addToServer(id).then(data => {
+                    if (data && data.success) {
+                        showToast(data.message || "Added to bag.", "success");
+                    } else if (data && data.message) {
+                        showToast(data.message, "error");
+                    } else if (data === null) {
+                        showToast("Something went wrong. Please try again.", "error");
+                    }
+                });
             }
         }
 

@@ -113,7 +113,11 @@ class CjProductController extends Controller
                     'supplier_name'     => $item['supplierName'] ?? 'CJ Dropshipping',
                     'sync_status'       => 'synced',
                     'image'             => $item['productImage'] ?? '',
-                    'stock'             => $item['packingWeight'] ?? 10,
+                    // ملاحظة: كان هذا الحقل يقرأ خطأً packingWeight (وزن
+                    // التغليف بالجرام)، وهو رقم لا علاقة له بالمخزون إطلاقاً
+                    // ويؤدي لقيم مخزون عشوائية. صُحِّح ليقرأ listedNum (نفس
+                    // الحقل المستخدم فعلاً في SyncCjProducts::handle()).
+                    'stock'             => $item['listedNum'] ?? 10,
                     'cj_pid'            => $item['pid'] ?? $request->pid,
                 ]
             );
