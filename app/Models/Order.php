@@ -24,7 +24,11 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'status',
+        'subtotal',
+        'shipping_total',
         'total',
+        'payment_method',
+        'payment_status',
         'shipping_name',
         'shipping_email',
         'shipping_phone',
@@ -41,5 +45,14 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * تجميع عناصر الطلب حسب المورد — يمكّن من التعامل مع طلب واحد يحوي
+     * منتجات من أكثر من مورد (إرسال أمر شراء لكل مورد على حدة).
+     */
+    public function itemsBySupplier()
+    {
+        return $this->items->groupBy(fn (OrderItem $item) => $item->supplier_name ?: 'غير محدد');
     }
 }
