@@ -354,6 +354,37 @@
                 <div>
                     <div class="foot-word">POST</div>
                     <p style="max-width:30ch;font-size:.88rem;color:#c2b0a2">{{ __('Premium origin stories and thoughts, designed in New York and worn everywhere.') }}</p>
+                    @php
+                        // روابط السوشيال ميديا قابلة للتعديل من لوحة التحكم (admin/settings).
+                        // واتساب: نقبل رابطاً جاهزاً أو رقماً فنبني منه رابط wa.me.
+                        $waRaw = \App\Models\Setting::get('social_whatsapp');
+                        $waUrl = $waRaw
+                            ? (\Illuminate\Support\Str::startsWith($waRaw, ['http://', 'https://'])
+                                ? $waRaw
+                                : 'https://wa.me/' . preg_replace('/\D+/', '', $waRaw))
+                            : null;
+                        $socials = array_filter([
+                            'Instagram' => \App\Models\Setting::get('social_instagram'),
+                            'Facebook'  => \App\Models\Setting::get('social_facebook'),
+                            'TikTok'    => \App\Models\Setting::get('social_tiktok'),
+                            'YouTube'   => \App\Models\Setting::get('social_youtube'),
+                            'X'         => \App\Models\Setting::get('social_twitter'),
+                            'WhatsApp'  => $waUrl,
+                        ]);
+                        $socialIcons = [
+                            'Instagram' => '📸', 'Facebook' => '📘', 'TikTok' => '🎵',
+                            'YouTube' => '▶️', 'X' => '✖️', 'WhatsApp' => '💬',
+                        ];
+                    @endphp
+                    @if(!empty($socials))
+                        <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap">
+                            @foreach($socials as $label => $url)
+                                <a href="{{ $url }}" target="_blank" rel="noopener noreferrer"
+                                   aria-label="{{ $label }}" title="{{ $label }}"
+                                   style="width:36px;height:36px;border-radius:50%;background:rgba(217,202,189,.12);display:grid;place-items:center;font-size:1rem;transition:background .3s">{{ $socialIcons[$label] ?? '🔗' }}</a>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
                 <div>
                     <h4>{{ __('Shop') }}</h4>

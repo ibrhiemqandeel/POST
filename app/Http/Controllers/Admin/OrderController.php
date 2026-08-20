@@ -78,12 +78,28 @@ class OrderController extends Controller
             $data['shipping_city'] = $order->shipping_city;
             $data['shipping_address'] = $order->shipping_address;
             $data['notes'] = $order->notes;
+            $data['subtotal'] = (float) $order->subtotal;
+            $data['shipping_total'] = (float) $order->shipping_total;
+            $data['payment_method'] = $order->payment_method;
+            $data['payment_status'] = $order->payment_status;
             $data['items'] = $order->items->map(fn ($item) => [
                 'name'     => $item->product_name,
+                'supplier' => $item->supplier_name ?: 'غير محدد',
                 'quantity' => $item->quantity,
                 'price'    => (float) $item->price,
+                'cost'     => (float) ($item->cost_price ?? 0),
                 'total'    => $item->lineTotal(),
             ]);
+
+            // تجميع العناصر حسب المورد — طلب واحد قد يشمل أكثر من مورد.
+            $data['suppliers'] = $order->items
+                ->groupBy(fn ($item) => $item->supplier_name ?: 'غير محدد')
+                ->map(fn ($items, $name) => [
+                    'supplier' => $name,
+                    'items'    => $items->count(),
+                    'units'    => $items->sum('quantity'),
+                    'cost'     => (float) $items->sum(fn ($i) => (float) ($i->cost_price ?? 0) * $i->quantity),
+                ])->values();
         }
 
         return $data;

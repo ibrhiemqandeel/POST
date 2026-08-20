@@ -9,9 +9,12 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'supplier_id',
+        'supplier_name',
         'product_name',
         'quantity',
         'price',
+        'cost_price',
     ];
 
     public function order()
@@ -22,6 +25,11 @@ class OrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function lineTotal(): float

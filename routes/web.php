@@ -15,6 +15,10 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 
 
 /*
@@ -156,6 +160,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // إدارة العملاء
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
+
+    // إدارة الموردين (Multi-Supplier / Dropshipping)
+    Route::get('/suppliers', [AdminSupplierController::class, 'index'])->name('suppliers.index');
+    Route::post('/suppliers', [AdminSupplierController::class, 'store'])->name('suppliers.store');
+    Route::put('/suppliers/{supplier}', [AdminSupplierController::class, 'update'])->name('suppliers.update');
+    Route::delete('/suppliers/{supplier}', [AdminSupplierController::class, 'destroy'])->name('suppliers.destroy');
+
+    // الشحن
+    Route::get('/shipping', [AdminShippingController::class, 'index'])->name('shipping.index');
+    Route::post('/shipping', [AdminShippingController::class, 'update'])->name('shipping.update');
+
+    // المدفوعات
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments', [AdminPaymentController::class, 'update'])->name('payments.update');
+
+    // الإعدادات العامة + السوشيال ميديا
+    Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
 });
 
 // حماية أمنية: هذا المسار كان بدون أي حماية ويسمح لأي زائر بتشغيل migrate
