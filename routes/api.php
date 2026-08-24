@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CjProductController;
+use App\Http\Controllers\BotOrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,11 +9,13 @@ use App\Http\Controllers\CjProductController;
 |--------------------------------------------------------------------------
 |
 | لارافيل يضيف تلقائياً بادئة '/api' لكل المسارات الموجودة في هذا الملف.
-| وبالتالي سينتج لدينا المسارات التالية:
-| GET  /api/cj/products
-| POST /api/cj/import-product
+|
+| ملاحظة: مسارات CJ (products / import-product) أُزيلت من هنا لأنها كانت
+| مكرّرة وغير محمية؛ النسخة الفعّالة منها محميّة تحت admin/cj/* في web.php.
 |
 */
 
-Route::get('/cj/products', [CjProductController::class, 'index']);
-Route::post('/cj/import-product', [CjProductController::class, 'importProduct']);
+// استقبال طلبات بوت واتساب وإنشاؤها في لوحة الأدمن (جاهزة للإسناد).
+// محمي بتوكن سرّي BOT_API_TOKEN يُرسل في ترويسة X-Bot-Token.
+// => POST /api/bot/orders
+Route::post('/bot/orders', [BotOrderController::class, 'store']);
