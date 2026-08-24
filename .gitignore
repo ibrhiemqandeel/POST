@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# بوت واتساب لتطبيق Yalla — مستودع مستقل، غير مرتبط بمشروع POST
+yalla-delivery-bot/
