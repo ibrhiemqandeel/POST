@@ -56,5 +56,8 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 # فتح المنفذ 80 للاستضافة
 EXPOSE 80
 
-# أمر التشغيل: تنظيف الكاش وتشغيل Nginx و PHP-FPM فقط
-CMD ["sh", "-c", "php artisan route:clear && php artisan config:clear && service nginx start && php-fpm"]
+# أمر التشغيل: تشغيل الميجريشن (يطبّق أي تعديل ناقص على قاعدة بيانات الإنتاج
+# تلقائياً عند كل نشر — بلا حاجة لوصول Shell)، ثم تنظيف الكاش وتشغيل الخادم.
+# migrate يُجعَل غير قاتل (|| true) حتى لا يمنع أي تعثّر مؤقت في الاتصال بقاعدة
+# البيانات وقت الإقلاع تشغيلَ خادم الويب.
+CMD ["sh", "-c", "php artisan migrate --force || true; php artisan route:clear && php artisan config:clear && php artisan cache:clear && service nginx start && php-fpm"]

@@ -24,7 +24,15 @@ class Setting extends Model
     public static function allSettings(): array
     {
         return Cache::rememberForever(self::CACHE_KEY, function () {
-            return static::query()->pluck('value', 'key')->toArray();
+            // تحصين: لو لم تُطبَّق ميجريشنات الإعدادات بعد (عمود key/value مفقود)
+            // أو تعذّر الوصول لقاعدة البيانات، نرجع مصفوفة فارغة فتعمل الصفحات
+            // بالقيم الافتراضية بدل إسقاط الموقع كله بخطأ 500.
+            try {
+                return static::query()->pluck('value', 'key')->toArray();
+            } catch (\Throwable $e) {
+                report($e);
+                return [];
+            }
         });
     }
 
