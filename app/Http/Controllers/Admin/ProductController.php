@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -20,10 +21,16 @@ use Illuminate\Validation\Rule;
 class ProductController extends Controller
 {
     /**
-     * قائمة كل المنتجات (تُستخدم لملء جدول لوحة التحكم).
+     * صفحة إدارة المنتجات. للطلبات العادية (تصفّح المتصفح) تُعرض واجهة Blade،
+     * ولطلبات fetch (Accept: application/json) تُرجَع البيانات كـ JSON — بحيث
+     * تخدم نفس الـ URL الصفحة والـ API معاً.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse|View
     {
+        if (! $request->wantsJson()) {
+            return view('admin.products');
+        }
+
         $products = Product::with(['category', 'supplier'])->latest()->get()->map(function (Product $product) {
             return $this->transform($product);
         });

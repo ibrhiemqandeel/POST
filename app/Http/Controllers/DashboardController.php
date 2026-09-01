@@ -38,19 +38,73 @@ class DashboardController extends Controller
         // للتوافق مع أي كود قديم كان يعتمد على total_users
         $stats['total_users'] = User::count();
 
-        $recentOrders = Order::with('user')->latest()->take(5)->get();
+        // متوسط قيمة الطلب (Average Order Value) — مؤشر تجاري مهم
+        $paidOrdersCount = Order::where('status', '!=', Order::STATUS_CANCELLED)->count();
+        $stats['avg_order_value'] = $paidOrdersCount > 0
+            ? round($stats['total_sales'] / $paidOrdersCount, 2)
+            : 0.0;
+
+        $recentOrders = Order::with('user')->latest()->take(6)->get();
 
         // المنتجات الأكثر مبيعاً (حسب مجموع الكميات المباعة في كل order_items)
-        $bestSellers = OrderItem::selectRaw('product_id, product_name, SUM(quantity) as total_sold')
+        $bestSellers = OrderItem::selectRaw('product_id, product_name, SUM(quantity) as total_sold, SUM(price * quantity) as revenue')
             ->whereNotNull('product_id')
             ->groupBy('product_id', 'product_name')
             ->orderByDesc('total_sold')
             ->take(5)
             ->get();
 
-        // ملاحظة: الملف resources/views/dashboard.blade.php هو نفسه واجهة
-        // إدارة المنتجات المخصصة للأدمن (وليست صفحة "حسابي" للمستخدم العادي)،
-        // لذلك لوحة التحكم الإدارية تستخدمه مباشرة بدل إنشاء ملف مكرر.
-        return view('dashboard', compact('stats', 'recentOrders', 'bestSellers'));
+        // تنبيهات المخزون — منتجات على وشك النفاد (1..5) أو نفدت فعلاً
+        $lowStock = Product::where('stock', '>', 0)->where('stock', '<=', 5)
+            ->orderBy('stock')->take(8)->get(['id', 'name', 'stock', 'price']);
+
+        // سلسلة المبيعات لآخر 14 يوماً — للرسم البياني في الداشبورد.
+        // تُحسب في PHP لتفادي اختلافات دوال التاريخ بين sqlite و mysql.
+        $salesSeries = $this->salesSeries(14);
+
+        // توزيع حالات الطلبات (لمخطط شريطي بسيط)
+        $statusBreakdown = [
+            ['label' => 'قيد الانتظار', 'value' => $stats['pending_orders'],    'class' => 'badge-pending'],
+            ['label' => 'قيد المعالجة', 'value' => $stats['processing_orders'], 'class' => 'badge-info'],
+            ['label' => 'تم التوصيل',   'value' => $stats['completed_orders'],  'class' => 'badge-synced'],
+            ['label' => 'ملغي',         'value' => $stats['cancelled_orders'],  'class' => 'badge-out'],
+        ];
+
+        return view('dashboard', compact(
+            'stats', 'recentOrders', 'bestSellers', 'lowStock', 'salesSeries', 'statusBreakdown'
+        ));
+    }
+
+    /**
+     * مبيعات آخر $days يوماً كسلسلة [ ['label'=>'d/m','date'=>'Y-m-d','total'=>float], ... ]
+     * الطلبات غير الملغاة فقط.
+     */
+    protected function salesSeries(int $days): array
+    {
+        $start = now()->startOfDay()->subDays($days - 1);
+
+        // نجلب مجاميع الطلبات اليومية ثم نطابقها مع كل يوم في المدى (بما فيها الأيام الصفرية)
+        $orders = Order::where('status', '!=', Order::STATUS_CANCELLED)
+            ->where('created_at', '>=', $start)
+            ->get(['total', 'created_at']);
+
+        $byDay = [];
+        foreach ($orders as $order) {
+            $key = $order->created_at->format('Y-m-d');
+            $byDay[$key] = ($byDay[$key] ?? 0) + (float) $order->total;
+        }
+
+        $series = [];
+        for ($i = 0; $i < $days; $i++) {
+            $day = $start->copy()->addDays($i);
+            $key = $day->format('Y-m-d');
+            $series[] = [
+                'label' => $day->format('j/n'),
+                'date'  => $key,
+                'total' => round($byDay[$key] ?? 0, 2),
+            ];
+        }
+
+        return $series;
     }
 }
