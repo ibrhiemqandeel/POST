@@ -33,6 +33,9 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // دمج سلة الزائر في سلة المستخدم الجديد بعد إنشاء الحساب مباشرةً
+        \App\Models\Cart::mergeGuestCartIntoUser();
+
         // التوجيه بناءً على الصلاحية
         // ملاحظة: كان يوجّه الأدمن إلى '/admin' وهو مسار غير معرّف فعلياً
         // (المسار الحقيقي هو '/admin/dashboard')، فكان يؤدي لخطأ 404.
@@ -55,6 +58,9 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
+
+            // دمج سلة الزائر في سلة المستخدم حتى لا تضيع منتجاته بعد الدخول
+            \App\Models\Cart::mergeGuestCartIntoUser();
 
             // التوجيه: إذا كان أدمن يُرسل للوحة التحكم، وإلا للصفحة الرئيسية
             if (Auth::user()->is_admin) {

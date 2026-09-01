@@ -40,6 +40,9 @@ class GoogleController extends Controller
             // تسجيل دخول المستخدم
             Auth::login($user, true);
 
+            // دمج سلة الزائر في سلة المستخدم حتى لا تضيع منتجاته بعد الدخول
+            \App\Models\Cart::mergeGuestCartIntoUser();
+
             // نفس منطق التوجيه المستخدم في AuthController: الأدمن للوحة التحكم،
             // والمستخدم العادي لصفحة حسابه.
             return $user->is_admin

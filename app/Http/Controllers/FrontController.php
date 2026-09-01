@@ -16,7 +16,7 @@ class FrontController extends Controller
         // 1. جلب المنتجات من الكاش
         $products = Cache::remember('home_api_products', 3600, function () {
             try {
-                $cjToken = config('services.cj.token', env('CJ_ACCESS_TOKEN'));
+                $cjToken = config('services.cj.token');
 
                 // طلب البيانات من CJ Dropshipping API
                 $response = Http::withHeaders([

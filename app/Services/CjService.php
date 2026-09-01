@@ -18,9 +18,11 @@ class CjService
             'timeout' => 15,
         ];
 
-        // في حال تم ضبط عنوان بروكسي في ملف .env سيتم استخدامه تلقائياً
-        if (env('CJ_PROXY')) {
-            $options['proxy'] = env('CJ_PROXY');
+        // في حال تم ضبط عنوان بروكسي في ملف .env سيتم استخدامه تلقائياً.
+        // يُقرأ عبر config() (وليس env() مباشرةً) ليبقى فعّالاً بعد config:cache.
+        $proxy = config('services.cj.proxy');
+        if ($proxy) {
+            $options['proxy'] = $proxy;
         }
 
         return $options;

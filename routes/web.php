@@ -184,7 +184,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // --force على قاعدة البيانات. الآن يتطلب توكن سري معرّف في .env (SETUP_TOKEN)
 // ولن يعمل إطلاقاً إذا لم يكن هذا المتغير معرّفاً.
 Route::get('/run-setup', function (\Illuminate\Http\Request $request) {
-    $setupToken = env('SETUP_TOKEN');
+    $setupToken = config('services.app_extra.setup_token');
 
     if (empty($setupToken) || $request->query('token') !== $setupToken) {
         abort(404);

@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // إجبار بروتوكول HTTPS في بيئة الإنتاج أو Render
-        if (app()->environment('production') || env('FORCE_HTTPS', false) || $request->server->has('HTTP_X_FORWARDED_PROTO')) {
+        if (app()->environment('production') || config('services.app_extra.force_https') || $request->server->has('HTTP_X_FORWARDED_PROTO')) {
             URL::forceScheme('https');
         }
     }

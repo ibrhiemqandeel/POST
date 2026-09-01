@@ -44,7 +44,19 @@ return [
     'cj' => [
         'email'   => env('CJ_EMAIL'),
         'api_key' => env('CJ_API_KEY'),
-    ],  
+        // تُقرأ هنا (وليس عبر env() مباشرةً في الكود) حتى تظل تعمل بعد
+        // تشغيل php artisan config:cache في الإنتاج.
+        'token'   => env('CJ_ACCESS_TOKEN'),
+        'proxy'   => env('CJ_PROXY'),
+    ],
 
+    /*
+    | إعدادات عامة للتطبيق تُقرأ من .env لكن يجب المرور عبر config() في الكود
+    | حتى لا تُفقد عند تفعيل الـ config cache.
+    */
+    'app_extra' => [
+        'force_https' => (bool) env('FORCE_HTTPS', false),
+        'setup_token' => env('SETUP_TOKEN'),
+    ],
 
 ];
